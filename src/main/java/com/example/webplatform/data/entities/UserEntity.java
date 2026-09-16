@@ -1,6 +1,7 @@
 package com.example.webplatform.data.entities;
 
 import com.example.models.University;
+import com.example.usecases.CheckEmailUseCase;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -39,6 +40,7 @@ public class UserEntity {
     public UserEntity() {}
 
     public UserEntity(String firstName, String lastName, String email, UniversityEntity universityEntity) {
+        CheckEmailUseCase.checkEmail(email);
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -70,6 +72,7 @@ public class UserEntity {
     }
 
     public void setEmail(String email) {
+        CheckEmailUseCase.checkEmail(email);
         this.email = email;
     }
 
