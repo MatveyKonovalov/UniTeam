@@ -1,5 +1,7 @@
 package com.example.webplatform.data.entities;
 
+import com.example.models.Skill;
+import com.example.models.University;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -20,19 +22,22 @@ public class ProjectEntity {
     @Column(name = "stars")
     private int stars;
 
-    @ManyToOne
-    @JoinColumn(name = "university_id", nullable = false)
-    private UniversityEntity universityEntity;
+
+    @Column(name="university", nullable = false, length = 100)
+    @Enumerated(EnumType.STRING)
+    private University university;
 
     @OneToMany(mappedBy = "projectEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserProjectEntity> usersLinks = new HashSet<>();
 
-
-    @ManyToMany
-    @JoinTable(name = "projects_skills",
-            joinColumns = @JoinColumn(name = "project_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id"))
-    private Set<SkillEntity> skillEntities = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(
+            name = "projects_skills",
+            joinColumns = @JoinColumn(name = "project_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "skill", nullable = false, length = 50)
+    private Set<Skill> skills = new HashSet<>();
 
     public String getDescription() {
         return description;
@@ -59,32 +64,28 @@ public class ProjectEntity {
         return projectId;
     }
 
-    public UniversityEntity getUniversityEntity() {
-        return universityEntity;
+    public University getUniversity() {
+        return university;
     }
 
     public void setStars(int stars) {
         this.stars = stars;
     }
 
-    public Set<SkillEntity> getSkillEntities() {
-        return skillEntities;
+    public Set<Skill> getSkills() {
+        return skills;
     }
 
     public Set<UserProjectEntity> getUsersLinks() {
         return usersLinks;
     }
 
-    public void setSkillEntities(Set<SkillEntity> skillEntities) {
-        this.skillEntities = skillEntities;
+    public void addSkillInStack(Skill skill) {
+        this.skills.add(skill);
     }
 
-    public void addSkillInStack(SkillEntity skillEntity) {
-        this.skillEntities.add(skillEntity);
-    }
-
-    public void removeSkillInStack(SkillEntity skillEntity) {
-        this.skillEntities.remove(skillEntity);
+    public void removeSkillInStack(Skill skill) {
+        this.skills.remove(skill);
     }
 
     public void addUserInProject(UserProjectEntity projectEntity) {
@@ -111,10 +112,10 @@ public class ProjectEntity {
     }
 
     public ProjectEntity(String name, String description, int stars,
-                         UniversityEntity universityEntity){
+                         University university) {
         this.name = name;
         this.description = description;
         this.stars = stars;
-        this.universityEntity = universityEntity;
+        this.university = university;
     }
 }

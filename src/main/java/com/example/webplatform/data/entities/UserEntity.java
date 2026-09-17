@@ -1,5 +1,6 @@
 package com.example.webplatform.data.entities;
 
+import com.example.models.Skill;
 import com.example.models.University;
 import com.example.usecases.CheckEmailUseCase;
 import jakarta.persistence.*;
@@ -24,27 +25,31 @@ public class UserEntity {
     @Column(name = "email", nullable = false, length = 100)
     private String email;
 
-    @ManyToMany()
-    @JoinTable(name = "users_skills",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id"))
-    private Set<SkillEntity> skillEntities = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(
+            name = "users_skills",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "skill", nullable = false)
+    private Set<Skill> skills = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserProjectEntity> userProjectEntities = new HashSet<>();
 
-    @ManyToOne
-    @JoinColumn(name = "university_id", nullable = false)
-    private UniversityEntity universityEntity;
+    @Column(name = "university", nullable = false, length = 100)
+    @Enumerated(EnumType.STRING)
+    private University university;
 
-    public UserEntity() {}
+    public UserEntity() {
+    }
 
-    public UserEntity(String firstName, String lastName, String email, UniversityEntity universityEntity) {
+    public UserEntity(String firstName, String lastName, String email, University university) {
         CheckEmailUseCase.checkEmail(email);
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.universityEntity = universityEntity;
+        this.university = university;
     }
 
     public String getEmail() {
@@ -63,8 +68,8 @@ public class UserEntity {
         return lastName;
     }
 
-    public Set<SkillEntity> getSkillEntities() {
-        return skillEntities;
+    public Set<Skill> getUserSkills() {
+        return skills;
     }
 
     public void setFirstName(String firstName) {
@@ -80,28 +85,31 @@ public class UserEntity {
         this.lastName = lastName;
     }
 
-    public UniversityEntity getUniversityEntity() {
-        return universityEntity;
+    public University getUniversity() {
+        return university;
     }
 
-    public void setUniversityEntity(UniversityEntity universityEntity) {
-        this.universityEntity = universityEntity;
+    public void setUniversity(University universityEntity) {
+        this.university = universityEntity;
     }
 
     public Set<UserProjectEntity> getUserProjectEntities() {
         return userProjectEntities;
     }
 
-    public void addSkillEntity(SkillEntity skillEntity){
-        this.skillEntities.add(skillEntity);
+    public void addSkill(Skill skill) {
+        this.skills.add(skill);
     }
-    public void removeSkillEntity(SkillEntity skillEntity){
-        this.skillEntities.remove(skillEntity);
+
+    public void removeSkill(Skill skillEntity) {
+        this.skills.remove(skillEntity);
     }
-    public void addUserProjectEntity(UserProjectEntity userProjectEntity){
+
+    public void addUserProjectEntity(UserProjectEntity userProjectEntity) {
         userProjectEntities.add(userProjectEntity);
     }
-    public void removeUserProjectEntity(UserProjectEntity userProjectEntity){
+
+    public void removeUserProjectEntity(UserProjectEntity userProjectEntity) {
         userProjectEntities.remove(userProjectEntity);
     }
 

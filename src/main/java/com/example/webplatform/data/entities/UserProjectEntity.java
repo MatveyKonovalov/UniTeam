@@ -1,5 +1,6 @@
 package com.example.webplatform.data.entities;
 
+import com.example.models.Role;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -23,21 +24,22 @@ public class UserProjectEntity {
     @JoinColumn(name = "project_id", nullable = false)
     private ProjectEntity projectEntity;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id", nullable = false)
-    private ProjectRoleEntity projectRoleEntity;
+
+    @Column(name = "role", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private Role projectRole;
 
     public UserProjectEntity() {
     }
 
-    public UserProjectEntity(UserEntity userEntity, ProjectEntity projectEntity, ProjectRoleEntity projectRoleEntity) {
+    public UserProjectEntity(UserEntity userEntity, ProjectEntity projectEntity, Role projectRole) {
         this.userEntity = userEntity;
         this.projectEntity = projectEntity;
-        this.projectRoleEntity = projectRoleEntity;
+        this.projectRole = projectRole;
     }
 
-    public ProjectRoleEntity getProjectRoleEntity() {
-        return projectRoleEntity;
+    public Role getProjectRole() {
+        return projectRole;
     }
 
     public Long getId() {
@@ -61,25 +63,19 @@ public class UserProjectEntity {
         this.userEntity = userEntity;
     }
 
-    public void setProjectRoleEntity(ProjectRoleEntity projectRoleEntity) {
-        this.projectRoleEntity = projectRoleEntity;
+    public void setProjectRoleEntity(Role projectRole) {
+        this.projectRole = projectRole;
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof UserProjectEntity that)) return false;
-        if (id != null && that.id != null) return id.equals(that.id);
-        return Objects.equals(userEntity, that.userEntity)
-                && Objects.equals(projectEntity, that.projectEntity);
-    }
-
-    @Override
-    public int hashCode() {
-        if (id != null) return id.hashCode();
-        return Objects.hash(
-                userEntity != null ? userEntity.getId() : null,
-                projectEntity != null ? projectEntity.getProjectId() : null
-        );
+        return id != null && id.equals(that.id);
     }
 }
