@@ -52,6 +52,7 @@ public class UserEntity {
         this.university = university;
     }
 
+    // getters
     public String getEmail() {
         return email;
     }
@@ -72,6 +73,16 @@ public class UserEntity {
         return skills;
     }
 
+    public University getUniversity() {
+        return university;
+    }
+
+    public Set<UserProjectEntity> getUserProjectEntities() {
+        return userProjectEntities;
+    }
+
+
+    // setters
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -85,18 +96,12 @@ public class UserEntity {
         this.lastName = lastName;
     }
 
-    public University getUniversity() {
-        return university;
-    }
-
     public void setUniversity(University universityEntity) {
         this.university = universityEntity;
     }
 
-    public Set<UserProjectEntity> getUserProjectEntities() {
-        return userProjectEntities;
-    }
 
+    // management functions
     public void addSkill(Skill skill) {
         this.skills.add(skill);
     }

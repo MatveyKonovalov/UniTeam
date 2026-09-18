@@ -1,7 +1,6 @@
-package com.example.models.commoninfo;
+package com.example.models.users;
 
 import com.example.models.University;
-import com.example.models.exceptions.IncorrectUserEmailException;
 import com.example.usecases.CheckEmailUseCase;
 
 public record UserCommonInfo(

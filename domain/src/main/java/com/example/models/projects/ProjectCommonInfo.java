@@ -1,4 +1,4 @@
-package com.example.models.commoninfo;
+package com.example.models.projects;
 
 import com.example.models.University;
 
@@ -7,6 +7,7 @@ public record ProjectCommonInfo(
         String name,
         String description,
         int starts,
-        University university
+        University university,
+        ProjectType projectType
 ) {
 }

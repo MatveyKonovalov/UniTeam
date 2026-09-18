@@ -2,6 +2,7 @@ package com.example.webplatform.data.entities;
 
 import com.example.models.Skill;
 import com.example.models.University;
+import com.example.models.projects.ProjectType;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -17,13 +18,14 @@ public class ProjectEntity {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+
     @Column(name = "description")
     private String description;
+
     @Column(name = "stars")
     private int stars;
 
-
-    @Column(name="university", nullable = false, length = 100)
+    @Column(name = "university", nullable = false, length = 100)
     @Enumerated(EnumType.STRING)
     private University university;
 
@@ -39,21 +41,32 @@ public class ProjectEntity {
     @Column(name = "skill", nullable = false, length = 50)
     private Set<Skill> skills = new HashSet<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "project_type", nullable = false, length = 50)
+    private ProjectType projectType;
+
+    @OneToMany(mappedBy = "projectEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjectTaskEntity> projectTaskEntities = new HashSet<>();
+
+    public ProjectEntity() {
+    }
+
+    public ProjectEntity(String name, String description, int stars,
+                         University university, ProjectType projectType) {
+        this.name = name;
+        this.description = description;
+        this.stars = stars;
+        this.university = university;
+        this.projectType = projectType;
+    }
+
+    // getters
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getName() {
         return name;
-    }
-
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public int getStars() {
@@ -68,10 +81,6 @@ public class ProjectEntity {
         return university;
     }
 
-    public void setStars(int stars) {
-        this.stars = stars;
-    }
-
     public Set<Skill> getSkills() {
         return skills;
     }
@@ -80,6 +89,28 @@ public class ProjectEntity {
         return usersLinks;
     }
 
+    public ProjectType getProjectType() {
+        return projectType;
+    }
+
+    // setters
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setStars(int stars) {
+        this.stars = stars;
+    }
+
+    public void setProjectType(ProjectType projectType) {
+        this.projectType = projectType;
+    }
+
+    // manager functions
     public void addSkillInStack(Skill skill) {
         this.skills.add(skill);
     }
@@ -96,6 +127,14 @@ public class ProjectEntity {
         this.usersLinks.remove(projectEntity);
     }
 
+    public void addProjectTaskEntity(ProjectTaskEntity projectTaskEntity) {
+        this.projectTaskEntities.add(projectTaskEntity);
+    }
+
+    public void removeProjectTaskEntity(ProjectTaskEntity projectTaskEntity){
+        this.projectTaskEntities.remove(projectTaskEntity);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -106,16 +145,5 @@ public class ProjectEntity {
     @Override
     public int hashCode() {
         return projectId != null ? projectId.hashCode() : 0;
-    }
-
-    public ProjectEntity() {
-    }
-
-    public ProjectEntity(String name, String description, int stars,
-                         University university) {
-        this.name = name;
-        this.description = description;
-        this.stars = stars;
-        this.university = university;
     }
 }
