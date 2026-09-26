@@ -1,6 +1,7 @@
 package com.example.webplatform.data.entities;
 
-import com.example.models.projects.ProjectRole;
+
+import com.example.models.users.ProjectRole;
 import jakarta.persistence.*;
 
 @Entity

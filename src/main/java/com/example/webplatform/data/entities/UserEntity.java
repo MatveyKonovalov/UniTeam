@@ -2,7 +2,9 @@ package com.example.webplatform.data.entities;
 
 import com.example.models.Skill;
 import com.example.models.University;
+import com.example.usecases.CheckCourse;
 import com.example.usecases.CheckEmailUseCase;
+import com.example.usecases.CheckNotNull;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -32,24 +34,34 @@ public class UserEntity {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "skill", nullable = false)
-    private Set<Skill> skills = new HashSet<>();
+    private Set<Skill> skills;
 
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserProjectEntity> userProjectEntities = new HashSet<>();
+    private final Set<UserProjectEntity> userProjectEntities = new HashSet<>();
 
     @Column(name = "university", nullable = false, length = 100)
     @Enumerated(EnumType.STRING)
     private University university;
 
+    @Column(name = "current_amount_project", nullable = false)
+    private int currentAmountProject;
+
+    @Column(name = "course")
+    private int course;
+
     public UserEntity() {
     }
 
-    public UserEntity(String firstName, String lastName, String email, University university) {
+    public UserEntity(String firstName, String lastName, String email, University university, Set<Skill> skills, int course) {
+        CheckNotNull.checkNotNull(skills, new IllegalArgumentException("Skills must be not null"));
         CheckEmailUseCase.checkEmail(email);
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
         this.university = university;
+        this.currentAmountProject = 0;
+        this.skills = skills;
+        this.course = course;
     }
 
     // getters
@@ -81,6 +93,10 @@ public class UserEntity {
         return userProjectEntities;
     }
 
+    public int getCurrentAmountProject() {
+        return currentAmountProject;
+    }
+    public int getCourse(){return course;}
 
     // setters
     public void setFirstName(String firstName) {
@@ -100,6 +116,10 @@ public class UserEntity {
         this.university = universityEntity;
     }
 
+    private void setCourse(int course) {
+        CheckCourse.checkCourse(course);
+        this.course = course;
+    }
 
     // management functions
     public void addSkill(Skill skill) {
@@ -111,11 +131,16 @@ public class UserEntity {
     }
 
     public void addUserProjectEntity(UserProjectEntity userProjectEntity) {
+        if (currentAmountProject > 5) {
+            throw new IllegalArgumentException("Слишком много проектов, максимум 5");
+        }
+        currentAmountProject += 1;
         userProjectEntities.add(userProjectEntity);
     }
 
     public void removeUserProjectEntity(UserProjectEntity userProjectEntity) {
         userProjectEntities.remove(userProjectEntity);
+        currentAmountProject -= 1;
     }
 
     @Override
@@ -125,6 +150,8 @@ public class UserEntity {
                 ", id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", currentAmountProject=" + currentAmountProject + '\'' +
+                ", course=" + course + '\'' +
                 '}';
     }
 

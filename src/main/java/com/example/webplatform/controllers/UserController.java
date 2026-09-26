@@ -1,0 +1,32 @@
+package com.example.webplatform.controllers;
+
+
+import com.example.models.University;
+import com.example.webplatform.data.entities.dto.users.GetUser;
+import com.example.webplatform.data.entities.dto.users.GetUserContainer;
+import com.example.webplatform.data.entities.dto.users.PostUser;
+import com.example.webplatform.data.services.users.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v0/users")
+public class UserController {
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping()
+    public GetUser registerUser(@RequestBody PostUser user) {
+        return userService.registerUser(user);
+    }
+
+    @GetMapping()
+    public GetUserContainer getUsers(@RequestParam(required = false) University university,
+                                     @RequestParam(required = false) Integer course) {
+        return userService.getUsers(university, course);
+    }
+}

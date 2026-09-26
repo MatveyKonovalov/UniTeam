@@ -1,8 +1,8 @@
-package com.example.models.projects;
+package com.example.models.users;
 
 public enum ProjectRole {
-    CANCELLED,
     CANDIDATE,
+    CANCELLED,
     EMPLOYEE,
     CAPTAIN
 }
