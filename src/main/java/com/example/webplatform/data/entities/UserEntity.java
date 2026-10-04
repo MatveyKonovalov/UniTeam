@@ -2,16 +2,23 @@ package com.example.webplatform.data.entities;
 
 import com.example.models.Skill;
 import com.example.models.University;
+import com.example.models.exceptions.UserHasTooManyProjectsException;
+import com.example.models.security.Role;
 import com.example.usecases.CheckCourse;
 import com.example.usecases.CheckEmailUseCase;
 import com.example.usecases.CheckNotNull;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_user_email", columnNames = "email"))
+@Getter
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +26,11 @@ public class UserEntity {
     private Long id;
 
     @Column(name = "first_name", nullable = false, length = 50)
+    @Setter
     private String firstName;
 
     @Column(name = "last_name", nullable = false, length = 50)
+    @Setter
     private String lastName;
 
     @Column(name = "email", nullable = false, length = 100)
@@ -40,14 +49,31 @@ public class UserEntity {
     private final Set<UserProjectEntity> userProjectEntities = new HashSet<>();
 
     @Column(name = "university", nullable = false, length = 100)
+    @Setter
     @Enumerated(EnumType.STRING)
     private University university;
 
     @Column(name = "current_amount_project", nullable = false)
     private int currentAmountProject;
 
-    @Column(name = "course")
+    @Column(name = "course", nullable = false)
     private int course;
+
+    @Column(name = "password_hash", nullable = false)
+    @Setter
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "user_role_in_system", length = 15)
+    private Role role = Role.USER;
+
+    private boolean enable = true;
+
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+    @Column(name="refresh_token_expire")
+    private LocalDateTime refreshTokenExpire;
 
     public UserEntity() {
     }
@@ -64,57 +90,14 @@ public class UserEntity {
         this.course = course;
     }
 
-    // getters
-    public String getEmail() {
-        return email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public Set<Skill> getUserSkills() {
-        return skills;
-    }
-
-    public University getUniversity() {
-        return university;
-    }
-
-    public Set<UserProjectEntity> getUserProjectEntities() {
-        return userProjectEntities;
-    }
-
-    public int getCurrentAmountProject() {
-        return currentAmountProject;
-    }
-    public int getCourse(){return course;}
-
-    // setters
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    // custom setters
 
     public void setEmail(String email) {
         CheckEmailUseCase.checkEmail(email);
         this.email = email;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
 
-    public void setUniversity(University universityEntity) {
-        this.university = universityEntity;
-    }
 
     private void setCourse(int course) {
         CheckCourse.checkCourse(course);
@@ -132,7 +115,7 @@ public class UserEntity {
 
     public void addUserProjectEntity(UserProjectEntity userProjectEntity) {
         if (currentAmountProject > 5) {
-            throw new IllegalArgumentException("Слишком много проектов, максимум 5");
+            throw new UserHasTooManyProjectsException(id);
         }
         currentAmountProject += 1;
         userProjectEntities.add(userProjectEntity);

@@ -3,6 +3,7 @@ package com.example.webplatform.data.entities.dto.projects;
 import com.example.models.Skill;
 import com.example.models.University;
 import com.example.models.projects.ProjectType;
+import com.example.usecases.CheckCourse;
 import com.example.usecases.CheckNotNull;
 import com.example.usecases.CheckSkills;
 import com.example.usecases.CheckUniversity;
@@ -19,22 +20,27 @@ public class PostProject {
 
 
     private String title;
+    private final String description;
     private final University university;
     private final ProjectType projectType;
-    private List<Skill> stack;
+    private final List<Skill> stack;
+    private int minCourse;
 
-    public PostProject(String title, University university, ProjectType projectType, List<Skill> stack) {
+    public PostProject(String title, String description, University university, ProjectType projectType, List<Skill> stack, int minCourse) {
         CheckNotNull.checkNotNull(title, new IllegalArgumentException(incorrectTitleMessage));
         CheckUniversity.checkUniversity(university);
         CheckNotNull.checkNotNull(projectType, new IllegalArgumentException(incorrectProjectTypeMessage));
         CheckSkills.checkSkills(stack, maxAmountSkillsInStack,
                 "The project stack must not be null and must not have no more than 20 skills");
-
+        CheckNotNull.checkNotNull(description, new IllegalArgumentException("The description must not be null"));
+        CheckCourse.checkCourse(minCourse);
 
         this.projectType = projectType;
         this.stack = stack;
+        this.description = description;
         setTitle(title);
         this.university = university;
+        this.minCourse = minCourse;
     }
 
     // setters
@@ -60,5 +66,13 @@ public class PostProject {
 
     public List<Skill> getStack() {
         return stack;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public int getMinCourse() {
+        return minCourse;
     }
 }

@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 public class UserService {
@@ -39,5 +41,26 @@ public class UserService {
         } else {
             return new GetUserContainer(mapper.toGetUserFromUserEntity(repository.findAll()));
         }
+    }
+
+    public GetUser findUserById(long id) {
+        Optional<UserEntity> user = repository.findById(id);
+
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("User with id=" + id + " not found");
+        }
+        return mapper.toGetUserFromUserEntity(user.get());
+    }
+
+    public void deleteUserById(long id) {
+        repository.deleteById(id);
+    }
+
+    public GetUser findUserByEmail(String email) {
+        Optional<UserEntity> user = repository.findUserEntitiesByEmail(email);
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("User with email=" + email + " not found");
+        }
+        return mapper.toGetUserFromUserEntity(user.get());
     }
 }

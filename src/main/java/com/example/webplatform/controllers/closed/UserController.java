@@ -1,4 +1,4 @@
-package com.example.webplatform.controllers;
+package com.example.webplatform.controllers.closed;
 
 
 import com.example.models.University;
@@ -28,5 +28,10 @@ public class UserController {
     public GetUserContainer getUsers(@RequestParam(required = false) University university,
                                      @RequestParam(required = false) Integer course) {
         return userService.getUsers(university, course);
+    }
+
+    @GetMapping("/{id}")
+    public GetUser findUserById(@PathVariable("id") long id) {
+        return userService.findUserById(id);
     }
 }

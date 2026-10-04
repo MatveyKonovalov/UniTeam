@@ -1,0 +1,2 @@
+sudo docker run --name webplatform -e POSTGRES_PASSWORD=12345678 -e POSTGRES_USER=webapp -e POSTGRES_DB=dered -p 5430:5432 -v pgdata:/var/lib/postgresql/data -d postgres:18.3
+a3c278ef63554986ca7f99d46feb50f445e0536cadd7dfc8634cd9157db031c1

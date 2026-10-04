@@ -3,12 +3,15 @@ package com.example.webplatform.data.entities;
 
 import com.example.models.users.ProjectRole;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users_projects",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_user_project",
                 columnNames = {"user_id", "project_id"}))
+@Getter
 public class UserProjectEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,15 +20,18 @@ public class UserProjectEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @Setter
     private UserEntity userEntity;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
+    @Setter
     private ProjectEntity projectEntity;
 
 
     @Column(name = "role", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
+    @Setter
     private ProjectRole projectRole;
 
     public UserProjectEntity() {
@@ -34,36 +40,6 @@ public class UserProjectEntity {
     public UserProjectEntity(UserEntity userEntity, ProjectEntity projectEntity, ProjectRole projectRole) {
         this.userEntity = userEntity;
         this.projectEntity = projectEntity;
-        this.projectRole = projectRole;
-    }
-
-    public ProjectRole getProjectRole() {
-        return projectRole;
-    }
-
-    // getters
-    public Long getId() {
-        return id;
-    }
-
-    public ProjectEntity getProjectEntity() {
-        return projectEntity;
-    }
-
-    public UserEntity getUserEntity() {
-        return userEntity;
-    }
-
-    // setters
-    public void setProjectEntity(ProjectEntity projectEntity) {
-        this.projectEntity = projectEntity;
-    }
-
-    public void setUserEntity(UserEntity userEntity) {
-        this.userEntity = userEntity;
-    }
-
-    public void setProjectRoleEntity(ProjectRole projectRole) {
         this.projectRole = projectRole;
     }
 

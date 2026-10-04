@@ -3,9 +3,12 @@ package com.example.webplatform.data.entities;
 import com.example.models.tasks.TaskStatus;
 import com.example.models.tasks.TaskType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "projects_tasks")
+@Getter
 public class ProjectTaskEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,16 +16,20 @@ public class ProjectTaskEntity {
     private Long id;
 
     @Column(name = "title", nullable = false, length = 100)
+    @Setter
     private String title;
 
     @Column(name = "description", nullable = false)
+    @Setter
     private String description;
 
     @Column(name = "task_status", nullable = false, length = 20)
+    @Setter
     @Enumerated(EnumType.STRING)
     private TaskStatus taskStatus;
 
     @Column(name = "task_type", nullable = false, length = 50)
+    @Setter
     @Enumerated(EnumType.STRING)
     private TaskType taskType;
 
@@ -42,47 +49,7 @@ public class ProjectTaskEntity {
         this.projectEntity = projectEntity;
     }
 
-    // getters
-    public String getDescription() {
-        return description;
-    }
 
-    public Long getId() {
-        return id;
-    }
-
-    public TaskStatus getTaskStatus() {
-        return taskStatus;
-    }
-
-    public TaskType getTaskType() {
-        return taskType;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public ProjectEntity getProjectEntity() {
-        return projectEntity;
-    }
-
-    // setters
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setTaskStatus(TaskStatus taskStatus) {
-        this.taskStatus = taskStatus;
-    }
-
-    public void setTaskType(TaskType taskType) {
-        this.taskType = taskType;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 
     @Override
     public boolean equals(Object o){

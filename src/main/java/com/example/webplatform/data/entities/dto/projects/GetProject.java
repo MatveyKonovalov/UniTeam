@@ -9,8 +9,10 @@ import java.util.List;
 public record GetProject(
         Long id,
         String title,
+        String description,
         University university,
         int minCourse,
+        int stars,
         ProjectType theme,
         List<Skill> stack
 ) { }
