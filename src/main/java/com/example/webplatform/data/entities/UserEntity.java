@@ -114,7 +114,7 @@ public class UserEntity {
     }
 
     public void addUserProjectEntity(UserProjectEntity userProjectEntity) {
-        if (currentAmountProject > 5) {
+        if (currentAmountProject == 5) {
             throw new UserHasTooManyProjectsException(id);
         }
         currentAmountProject += 1;
