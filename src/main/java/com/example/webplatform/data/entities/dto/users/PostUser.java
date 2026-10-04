@@ -9,7 +9,7 @@ import java.util.List;
 public class PostUser {
     private final String incorrectFirstNameMessage = "The first name must not be null and length must be < 50";
     private final String incorrectLastNameMessage = "The last name must not be null and length must be < 50";
-
+    private final String incorrectUserPassword = "The user password must not be null";
 
     private String firstName;
     private String lastName;
@@ -17,12 +17,15 @@ public class PostUser {
     private final University university;
     private final int course;
     private final List<Skill> skills;
+    private final String password;
 
-    public PostUser(String firstName, String lastName, String email, University university, int course, List<Skill> skills) {
+    public PostUser(String firstName, String lastName, String email,
+                    University university, int course, List<Skill> skills, String password) {
         CheckUniversity.checkUniversity(university);
         CheckSkills.checkSkills(skills, 10, "");
         CheckNotNull.checkNotNull(firstName, new IllegalArgumentException(incorrectFirstNameMessage));
         CheckNotNull.checkNotNull(lastName, new IllegalArgumentException(incorrectLastNameMessage));
+        CheckNotNull.checkNotNull(password, new IllegalArgumentException(incorrectUserPassword));
         CheckCourse.checkCourse(course);
 
         setFirstName(firstName);
@@ -32,6 +35,7 @@ public class PostUser {
         this.university = university;
         this.course = course;
         this.skills = skills;
+        this.password = password;
     }
 
     private void setFirstName(String firstName){
@@ -76,4 +80,5 @@ public class PostUser {
     public String getEmail() {
         return email;
     }
+    public String getPassword() {return  password;}
 }

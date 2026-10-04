@@ -70,9 +70,11 @@ public class UserEntity {
     private boolean enable = true;
 
     @Column(name = "refresh_token")
+    @Setter
     private String refreshToken;
 
     @Column(name="refresh_token_expire")
+    @Setter
     private LocalDateTime refreshTokenExpire;
 
     public UserEntity() {

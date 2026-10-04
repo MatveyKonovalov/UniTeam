@@ -33,7 +33,7 @@ public class UserMapper {
                 userEntity.getEmail(),
                 userEntity.getUniversity(),
                 userEntity.getCourse(),
-                new ArrayList<>(userEntity.getUserSkills()),
+                new ArrayList<>(userEntity.getSkills()),
                 userEntity.getCurrentAmountProject()
         );
     }

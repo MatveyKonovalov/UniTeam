@@ -2,6 +2,7 @@ package com.example.webplatform.data.repositories;
 
 import com.example.models.University;
 import com.example.webplatform.data.entities.UserEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,6 +25,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findUserEntityByEmail(String email);
 
+    @Transactional
     @Modifying
     @Query("UPDATE UserEntity u " +
             "SET u.refreshToken= :refreshToken, u.refreshTokenExpire= :refreshTokenExpire " +

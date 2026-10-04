@@ -19,11 +19,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping()
-    public GetUser registerUser(@RequestBody PostUser user) {
-        return userService.registerUser(user);
-    }
-
     @GetMapping()
     public GetUserContainer getUsers(@RequestParam(required = false) University university,
                                      @RequestParam(required = false) Integer course) {

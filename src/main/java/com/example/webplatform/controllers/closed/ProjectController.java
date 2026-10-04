@@ -24,12 +24,12 @@ public class ProjectController {
         return projectService.addProject(projectContainer);
     }
 
-    @GetMapping()
-    public ProjectContainer getProject(
-            @RequestParam(required = false) University university,
-            @RequestParam(required = false) int course,
-            @RequestParam(required = false) ProjectType type
-    ){
-
-    }
+//    @GetMapping()
+//    public ProjectContainer getProject(
+//            @RequestParam(required = false) University university,
+//            @RequestParam(required = false) int course,
+//            @RequestParam(required = false) ProjectType type
+//    ){
+//
+//    }
 }

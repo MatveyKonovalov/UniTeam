@@ -25,11 +25,6 @@ public class UserService {
         this.mapper = mapper;
     }
 
-    public GetUser registerUser(PostUser user) {
-        UserEntity userEntity = repository.save(mapper.toUserEntityFromPostUser(user));
-        return mapper.toGetUserFromUserEntity(userEntity);
-    }
-
     public GetUserContainer getUsers(University university, Integer course) {
         if (university != null && course != null) {
             return new GetUserContainer
@@ -54,13 +49,5 @@ public class UserService {
 
     public void deleteUserById(long id) {
         repository.deleteById(id);
-    }
-
-    public GetUser findUserByEmail(String email) {
-        Optional<UserEntity> user = repository.findUserEntitiesByEmail(email);
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User with email=" + email + " not found");
-        }
-        return mapper.toGetUserFromUserEntity(user.get());
     }
 }
