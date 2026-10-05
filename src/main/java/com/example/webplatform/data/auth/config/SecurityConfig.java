@@ -37,9 +37,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v0/projects/**").hasAnyRole(roles)
                         .requestMatchers("/api/v0/users/**").hasAnyRole(roles)
-                        .requestMatchers("/api/v0/common_info/**").permitAll()
+                        .requestMatchers("/api/v0/info/**").permitAll()
                         .requestMatchers("/api/v0/admin/**").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/v0/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)

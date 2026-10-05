@@ -2,6 +2,7 @@ package com.example.webplatform.controllers.closed;
 
 
 import com.example.models.University;
+import com.example.webplatform.controllers.CommonPrefix;
 import com.example.webplatform.data.entities.dto.users.GetUser;
 import com.example.webplatform.data.entities.dto.users.GetUserContainer;
 import com.example.webplatform.data.entities.dto.users.PostUser;
@@ -10,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v0/users")
+@RequestMapping( CommonPrefix.PREFIX + "users")
 public class UserController {
     private final UserService userService;
 

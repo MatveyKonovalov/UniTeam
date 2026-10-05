@@ -1,5 +1,8 @@
 package com.example.models;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum Skill{
     PYTHON(1, "Python"),
     JAVA(2, "Java"),
@@ -121,7 +124,13 @@ public enum Skill{
 
     private final int id;
     private final String title;
+    private static final Map<Integer, Skill> skills = new HashMap<>();
 
+    static {
+        for(Skill skill: Skill.values()){
+            skills.put(skill.id, skill);
+        }
+    }
     Skill(int id, String title) {
         this.id = id;
         this.title = title;
@@ -152,12 +161,7 @@ public enum Skill{
     }
 
     public static Skill searchSkillById(int id){
-        for (Skill skill: Skill.values()){
-            if (skill.id == id){
-                return skill;
-            }
-        }
-        return null;
+        return skills.get(id);
     }
 
     public static boolean skillWithThisIdExists(int id){

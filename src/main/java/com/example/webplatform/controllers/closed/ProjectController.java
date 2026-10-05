@@ -2,6 +2,7 @@ package com.example.webplatform.controllers.closed;
 
 import com.example.models.University;
 import com.example.models.projects.ProjectType;
+import com.example.webplatform.controllers.CommonPrefix;
 import com.example.webplatform.data.entities.dto.projects.GetProject;
 import com.example.webplatform.data.entities.dto.projects.PostAddProject;
 import com.example.webplatform.data.entities.dto.projects.ProjectContainer;
@@ -10,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v0/projects")
+@RequestMapping(CommonPrefix.PREFIX + "projects")
 public class ProjectController {
     private final ProjectService projectService;
 

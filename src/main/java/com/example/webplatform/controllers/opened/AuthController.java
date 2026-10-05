@@ -1,5 +1,6 @@
 package com.example.webplatform.controllers.opened;
 
+import com.example.webplatform.controllers.CommonPrefix;
 import com.example.webplatform.data.auth.tokens.JwtTokenProvider;
 import com.example.webplatform.data.auth.tokens.TokenService;
 import com.example.webplatform.data.auth.userdetails.CustomUserDetails;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/api/v0/auth")
+@RequestMapping(CommonPrefix.PREFIX + "auth")
 public class AuthController {
     private final AuthenticationManager authManager;
     private final JwtTokenProvider jwtTokenProvider;
