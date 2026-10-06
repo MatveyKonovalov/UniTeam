@@ -4,5 +4,6 @@ public enum ProjectRole {
     CANDIDATE,
     CANCELLED,
     EMPLOYEE,
-    CAPTAIN
+    CAPTAIN,
+    SUBCAPTAIN
 }

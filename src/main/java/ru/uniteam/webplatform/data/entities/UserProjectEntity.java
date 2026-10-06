@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users_projects",
         uniqueConstraints = @UniqueConstraint(
@@ -33,6 +35,9 @@ public class UserProjectEntity {
     @Enumerated(EnumType.STRING)
     @Setter
     private ProjectRole projectRole;
+
+    @Column(name = "joining_time")
+    private final LocalDateTime joiningTime = LocalDateTime.now();
 
     public UserProjectEntity() {
     }
