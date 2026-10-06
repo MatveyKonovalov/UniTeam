@@ -4,9 +4,13 @@ import com.example.models.Skill;
 import com.example.models.University;
 import com.example.models.exceptions.UserHasTooManyProjectsException;
 import com.example.models.security.Role;
+import com.example.models.users.ProjectRole;
+import com.example.usecases.CanUserBorrowProject;
 import com.example.usecases.CheckCourse;
 import com.example.usecases.CheckEmailUseCase;
 import com.example.usecases.CheckNotNull;
+import com.example.usecases.skills.CheckSkills;
+import com.example.usecases.skills.CheckUserSkills;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -93,15 +97,12 @@ public class UserEntity {
     }
 
     // custom setters
-
     public void setEmail(String email) {
         CheckEmailUseCase.checkEmail(email);
         this.email = email;
     }
 
-
-
-    private void setCourse(int course) {
+    public void setCourse(int course) {
         CheckCourse.checkCourse(course);
         this.course = course;
     }
@@ -115,18 +116,27 @@ public class UserEntity {
         this.skills.remove(skillEntity);
     }
 
-    public void addUserProjectEntity(UserProjectEntity userProjectEntity) {
-        if (currentAmountProject == 5) {
+    public void addProjectEntity(ProjectEntity projectEntity, ProjectRole role) {
+        // Если этот проект уже есть у пользователя
+        if (userProjectEntities.stream().map(UserProjectEntity::getProjectEntity).toList().contains(projectEntity)){
+            return;
+        }
+
+        if (!canBorrowNewProject()) {
             throw new UserHasTooManyProjectsException(id);
         }
         currentAmountProject += 1;
-        userProjectEntities.add(userProjectEntity);
+        userProjectEntities.add(new UserProjectEntity(this, projectEntity, role));
     }
 
     public void removeUserProjectEntity(UserProjectEntity userProjectEntity) {
         userProjectEntities.remove(userProjectEntity);
         currentAmountProject -= 1;
     }
+    public boolean canBorrowNewProject(){
+        return CanUserBorrowProject.canBorrow(currentAmountProject);
+    }
+    public boolean canBorrowSkill(){return CheckUserSkills.canAddSkill(skills.size());}
 
     @Override
     public String toString() {

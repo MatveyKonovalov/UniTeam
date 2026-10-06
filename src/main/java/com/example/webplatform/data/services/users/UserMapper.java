@@ -1,6 +1,7 @@
 package com.example.webplatform.data.services.users;
 
 import com.example.models.Skill;
+import com.example.models.users.UserData;
 import com.example.webplatform.data.entities.UserEntity;
 import com.example.webplatform.data.entities.dto.users.GetUser;
 import com.example.webplatform.data.entities.dto.users.PostUser;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Component
 public class UserMapper {
-    public UserEntity toUserEntityFromPostUser(PostUser postUser) {
+    public UserEntity toUserEntityFromPostUser(UserData postUser) {
         Set<Skill> skills = new HashSet<>(postUser.getSkills());
         return new UserEntity(
                 postUser.getFirstName(),

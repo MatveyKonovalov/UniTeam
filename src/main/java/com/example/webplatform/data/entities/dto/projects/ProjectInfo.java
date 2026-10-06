@@ -6,7 +6,7 @@ import com.example.models.projects.ProjectType;
 
 import java.util.List;
 
-public record GetProject(
+public record ProjectInfo(
         Long id,
         String title,
         String description,

@@ -1,10 +1,10 @@
 package com.example.webplatform.data.services.users;
 
+import com.example.models.Skill;
 import com.example.models.University;
 import com.example.webplatform.data.entities.UserEntity;
 import com.example.webplatform.data.entities.dto.users.GetUser;
 import com.example.webplatform.data.entities.dto.users.GetUserContainer;
-import com.example.webplatform.data.entities.dto.users.PostUser;
 import com.example.webplatform.data.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,5 +49,36 @@ public class UserService {
 
     public void deleteUserById(long id) {
         repository.deleteById(id);
+    }
+
+    public UserEntity getUserByEmail(String email) {
+        return repository.findUserEntitiesByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User with email=" + email + " not found"));
+    }
+
+    public GetUser addSkill(UserEntity user, Skill skill){
+        if (user.canBorrowSkill()){
+            user.addSkill(skill);
+
+            return mapper.toGetUserFromUserEntity(user);
+        }
+
+        throw new IllegalArgumentException("Too many skills");
+    }
+
+    public GetUser deleteSkill(UserEntity userEntity, Skill skill){
+        userEntity.removeSkill(skill);
+
+        return mapper.toGetUserFromUserEntity(userEntity);
+    }
+
+    public GetUser setUniversity(UserEntity userEntity, University university){
+        userEntity.setUniversity(university);
+        return mapper.toGetUserFromUserEntity(userEntity);
+    }
+
+    public GetUser setCourse(UserEntity userEntity, int course){
+        userEntity.setCourse(course);
+        return mapper.toGetUserFromUserEntity(userEntity);
     }
 }
