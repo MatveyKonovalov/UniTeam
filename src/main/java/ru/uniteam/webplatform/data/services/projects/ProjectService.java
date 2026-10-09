@@ -6,10 +6,7 @@ import ru.uniteam.models.users.ProjectRole;
 import ru.uniteam.webplatform.data.entities.ProjectEntity;
 import ru.uniteam.webplatform.data.entities.UserEntity;
 import ru.uniteam.webplatform.data.entities.UserProjectEntity;
-import ru.uniteam.webplatform.data.entities.dto.projects.PostProject;
-import ru.uniteam.webplatform.data.entities.dto.projects.ProjectAllInfo;
-import ru.uniteam.webplatform.data.entities.dto.projects.ProjectContainer;
-import ru.uniteam.webplatform.data.entities.dto.projects.ProjectInfo;
+import ru.uniteam.webplatform.data.entities.dto.projects.*;
 import ru.uniteam.webplatform.data.entities.dto.security.ApiResponse;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUserContainer;
 import ru.uniteam.webplatform.data.repositories.ProjectRepository;
@@ -42,8 +39,9 @@ public class ProjectService {
             return new ProjectAllInfo(mapper.toGetProjectFromProjectEntity(projectEntity),
                     captain.getEmail(),
                     Collections.emptyList());
+        } else {
+            throw new IllegalArgumentException("Too many projects");
         }
-        throw new IllegalArgumentException("Too many projects");
     }
 
     public ProjectContainer getProjects(University university, Integer minCourse) {
@@ -111,10 +109,11 @@ public class ProjectService {
             if (userInProject.isPresent()) {
                 userInProject.get().setProjectRole(ProjectRole.EMPLOYEE);
             } else {
-                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
             }
+        } else {
+            throw new PermissionException();
         }
-        throw new PermissionException();
     }
 
     public void cancelProject(long projectId, long candidateId, UserEntity executor) {
@@ -129,10 +128,11 @@ public class ProjectService {
             if (userInProject.isPresent()) {
                 userInProject.get().getUserEntity().projectCancel(userInProject.get());
             } else {
-                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
             }
+        } else {
+            throw new PermissionException();
         }
-        throw new PermissionException();
     }
 
     public GetUserContainer getCancelledCandidates(long projectId, UserEntity executor) {
@@ -144,45 +144,94 @@ public class ProjectService {
                     .map(up -> userMapper.toGetUserFromUserEntity(up.getUserEntity()))
                     .toList()
             );
+        } else {
+            throw new PermissionException();
         }
-        throw new PermissionException();
     }
 
+    // Только сотрудник может быть повышен до зама
     public void appointAsDeputy(long projectId, long candidateId, UserEntity executor) {
         List<UserProjectEntity> members = getMembers(projectId);
 
         if (isCaptain(executor, members)) {
             Optional<UserProjectEntity> userInProject = members.stream()
+                    .filter(up -> up.getProjectRole() == ProjectRole.EMPLOYEE)
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
                     .findFirst();
 
             if (userInProject.isPresent()) {
                 userInProject.get().setProjectRole(ProjectRole.SUBCAPTAIN);
             } else {
-                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
             }
+        } else {
+            throw new PermissionException();
         }
-        throw new PermissionException();
     }
 
+    // Только зам может быть понижен до обычного сотрудника
     public void demotePosition(long projectId, long candidateId, UserEntity executor) {
         List<UserProjectEntity> members = getMembers(projectId);
 
         if (isCaptain(executor, members)) {
             Optional<UserProjectEntity> userInProject = members.stream()
+                    .filter(up -> up.getProjectRole() == ProjectRole.SUBCAPTAIN)
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
                     .findFirst();
 
             if (userInProject.isPresent()) {
                 userInProject.get().setProjectRole(ProjectRole.EMPLOYEE);
             } else {
-                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
             }
+        } else {
+            throw new PermissionException();
         }
-        throw new PermissionException();
-
     }
 
+    /*
+    Зам может удалить только обычного пользователя
+    Капитан может удалять замов и обычных пользователей
+     */
+    public void deleteUser(long projectId, long candidateId, UserEntity executor) {
+        List<UserProjectEntity> members = getMembers(projectId);
+        Optional<UserProjectEntity> userInProject = members.stream()
+                .filter(up ->
+                        up.getProjectRole() == ProjectRole.SUBCAPTAIN || up.getProjectRole() == ProjectRole.EMPLOYEE)
+                .filter(up -> up.getUserEntity().getId().equals(candidateId))
+                .findFirst();
+
+        if (isCaptain(executor, members)) {
+            if (userInProject.isPresent()) {
+                userInProject.get().getUserEntity().leaveTheProject(userInProject.get());
+            } else {
+                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
+            }
+        } else if (isCaptainOrSubCaptain(executor, members)) {
+            if (userInProject.isPresent()) {
+                if (userInProject.get().getProjectRole() == ProjectRole.SUBCAPTAIN) {
+                    throw new PermissionException("Sub admin cannot delete anther sub admin");
+                }
+                userInProject.get().getUserEntity().leaveTheProject(userInProject.get());
+            } else {
+                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
+            }
+        } else {
+            throw new PermissionException();
+        }
+    }
+
+    public UserInProjectContainer getMembersInProject(long projectId) {
+        return new UserInProjectContainer(getMembers(projectId)
+                .stream()
+                .filter(up ->
+                        List.of(ProjectRole.EMPLOYEE, ProjectRole.CAPTAIN, ProjectRole.SUBCAPTAIN)
+                                .contains(up.getProjectRole()))
+                .map(up -> new UserInProject(up.getUserEntity().getId(),
+                        up.getUserEntity().getEmail(),
+                        up.getProjectRole()))
+                .toList());
+    }
 
     private boolean isCaptainOrSubCaptain(UserEntity user, List<UserProjectEntity> members) {
         return !members.stream()

@@ -6,10 +6,7 @@ import ru.uniteam.models.exceptions.PermissionException;
 import ru.uniteam.webplatform.controllers.CommonPrefix;
 import ru.uniteam.webplatform.data.entities.ProjectEntity;
 import ru.uniteam.webplatform.data.entities.UserEntity;
-import ru.uniteam.webplatform.data.entities.dto.projects.ProjectAllInfo;
-import ru.uniteam.webplatform.data.entities.dto.projects.PostProject;
-import ru.uniteam.webplatform.data.entities.dto.projects.ProjectContainer;
-import ru.uniteam.webplatform.data.entities.dto.projects.ProjectInfo;
+import ru.uniteam.webplatform.data.entities.dto.projects.*;
 import ru.uniteam.webplatform.data.entities.dto.security.ApiResponse;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUserContainer;
 import ru.uniteam.webplatform.data.services.projects.ProjectService;
@@ -41,13 +38,11 @@ public class ProjectController {
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectInfo> getInfoAboutProject(@PathVariable long projectId) {
         return ResponseEntity.ok(projectService.getProjectById(projectId));
-
     }
 
     @GetMapping("/{projectId}/candidates")
     public ResponseEntity<GetUserContainer> getCandidatesByProjectId(@PathVariable long projectId) {
         return ResponseEntity.ok(projectService.getCandidates(projectId, getUserFromRequest()));
-
     }
 
     @PostMapping("/{projectId}/add/{candidateId}")
@@ -60,18 +55,15 @@ public class ProjectController {
     public ResponseEntity<ApiResponse> cancelCandidate(@PathVariable long projectId, @PathVariable long candidateId) {
         projectService.cancelProject(projectId, candidateId, getUserFromRequest());
         return ResponseEntity.ok(new ApiResponse("User has been canceled"));
-
     }
 
     @GetMapping("/{projectId}/cancelled_candidates")
     public ResponseEntity<GetUserContainer> getCancelledCandidates(@PathVariable long projectId) {
         return ResponseEntity.ok(projectService.getCancelledCandidates(projectId, getUserFromRequest()));
-
     }
 
     @PostMapping("/{projectId}/appoint_as_deputy/{employerId}")
     public ResponseEntity<ApiResponse> appointAsDeputy(@PathVariable long projectId, @PathVariable long employerId) {
-
         projectService.appointAsDeputy(projectId, employerId, getUserFromRequest());
         return ResponseEntity.ok(
                 new ApiResponse("The user with id=" + employerId +
@@ -81,12 +73,23 @@ public class ProjectController {
 
     @PostMapping("/{projectId}/demote_position/{employerId}")
     public ResponseEntity<ApiResponse> demotePosition(@PathVariable long projectId, @PathVariable long employerId) {
-
         projectService.demotePosition(projectId, employerId, getUserFromRequest());
         return ResponseEntity.ok(
                 new ApiResponse("The user with id=" +
                         employerId + "has become an employee in project with id=" + projectId));
+    }
 
+    @DeleteMapping("/{projectId}/{employeeId}")
+    public ResponseEntity<ApiResponse> deleteUserINProjectById(@PathVariable long projectId,
+                                                               @PathVariable long employeeId){
+        projectService.deleteUser(projectId, employeeId, getUserFromRequest());
+        return ResponseEntity.ok(new ApiResponse("The user with id=" + employeeId
+                + "has deleted from project with id=" + projectId));
+    }
+
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity<UserInProjectContainer> getMembers(@PathVariable long projectId){
+        return ResponseEntity.ok(projectService.getMembersInProject(projectId));
     }
 
 

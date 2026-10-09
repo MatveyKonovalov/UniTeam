@@ -56,10 +56,7 @@ public class UserEntity {
     private University university;
 
     @Column(name = "current_amount_project", nullable = false)
-    private int currentAmountProject = (int) userProjectEntities
-            .stream()
-            .filter(up -> up.getProjectRole() != ProjectRole.CANCELLED)
-            .count();
+    private int currentAmountProject = 0;
 
     @Column(name = "course", nullable = false)
     private int course;
