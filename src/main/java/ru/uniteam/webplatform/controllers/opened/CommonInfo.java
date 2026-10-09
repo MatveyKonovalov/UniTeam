@@ -2,10 +2,13 @@ package ru.uniteam.webplatform.controllers.opened;
 
 import ru.uniteam.models.Skill;
 import ru.uniteam.models.University;
+import ru.uniteam.models.projects.ProjectType;
 import ru.uniteam.webplatform.controllers.CommonPrefix;
 import ru.uniteam.webplatform.data.entities.dto.common.GetCommonInfo;
 import ru.uniteam.webplatform.data.entities.dto.common.GetContainerCommon;
+import ru.uniteam.webplatform.data.entities.dto.common.ProjectTypeContainer;
 import ru.uniteam.webplatform.data.entities.dto.security.ApiResponse;
+import ru.uniteam.webplatform.data.services.common.ProjectTypeService;
 import ru.uniteam.webplatform.data.services.common.SkillService;
 import ru.uniteam.webplatform.data.services.common.UniversityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommonInfo {
     private final UniversityService universityService;
     private final SkillService skillService;
+    private final ProjectTypeService projectTypeService;
+
     @Autowired
-    public CommonInfo(UniversityService service, SkillService skillService){
+    public CommonInfo(UniversityService service, SkillService skillService, ProjectTypeService projectTypeService){
         this.universityService = service;
         this.skillService = skillService;
+        this.projectTypeService = projectTypeService;
     }
 
     @GetMapping("/universities")
@@ -54,5 +60,10 @@ public class CommonInfo {
         }
 
         return ResponseEntity.ok(new GetCommonInfo(id, skill.getTitle()));
+    }
+
+    @GetMapping("/projectTypes")
+    public ProjectTypeContainer getProjectTypes(){
+        return projectTypeService.getProjectsType();
     }
 }

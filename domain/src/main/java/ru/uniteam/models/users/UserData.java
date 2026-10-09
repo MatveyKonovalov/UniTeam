@@ -8,6 +8,7 @@ import ru.uniteam.usecases.CheckNotNull;
 import ru.uniteam.usecases.CheckUniversity;
 import ru.uniteam.usecases.skills.CheckUserSkills;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserData {
@@ -26,7 +27,7 @@ public class UserData {
     public UserData(String firstName, String lastName, String email,
                     University university, int course, List<Skill> skills, String password) {
         CheckUniversity.checkUniversity(university);
-        if (!CheckUserSkills.canAddSkills(skills)){
+        if (!CheckUserSkills.canAddSkills(skills)) {
             throw new IllegalArgumentException("Too may user skills");
         }
         CheckNotNull.checkNotNull(firstName, new IllegalArgumentException(incorrectFirstNameMessage));
@@ -40,26 +41,27 @@ public class UserData {
 
         this.university = university;
         this.course = course;
-        this.skills = skills;
+        this.skills = new ArrayList<>(skills);
         this.password = password;
 
 
     }
 
-    private void setFirstName(String firstName){
+    private void setFirstName(String firstName) {
         CheckNotNull.checkNotNull(firstName, new IllegalArgumentException(incorrectFirstNameMessage));
         if (firstName.length() > 50) throw new IllegalArgumentException(incorrectFirstNameMessage);
         this.firstName = firstName;
 
     }
 
-    private void setLastName(String lastName){
+    private void setLastName(String lastName) {
         CheckNotNull.checkNotNull(lastName, new IllegalArgumentException(incorrectLastNameMessage));
         if (lastName.length() > 50) throw new IllegalArgumentException(incorrectLastNameMessage);
         this.lastName = lastName;
 
     }
-    private void setEmail(String email){
+
+    private void setEmail(String email) {
         CheckEmailUseCase.checkEmail(email);
         this.email = email;
     }
@@ -74,7 +76,7 @@ public class UserData {
     }
 
     public List<Skill> getSkills() {
-        return skills;
+        return new ArrayList<>(skills);
     }
 
     public String getFirstName() {
@@ -88,5 +90,8 @@ public class UserData {
     public String getEmail() {
         return email;
     }
-    public String getPassword() {return  password;}
+
+    public String getPassword() {
+        return password;
+    }
 }

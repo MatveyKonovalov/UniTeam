@@ -7,15 +7,15 @@ import ru.uniteam.usecases.CheckNotNull;
 import ru.uniteam.usecases.skills.CheckUniversityStack;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
+
 public class PostProject {
     private static final String incorrectTitleMessage = "The project name must not be empty and must not exceed 100 characters.";
     private static final String incorrectProjectTypeMessage = "The project type must not be null";
 
 
-    // getters
     private String title;
     private final String description;
     private final ProjectType projectType;
@@ -34,7 +34,7 @@ public class PostProject {
         CheckCourse.checkCourse(minCourse);
 
         this.projectType = projectType;
-        this.stack = stack;
+        this.stack = new ArrayList<>(stack);
         this.description = description;
         setTitle(title);
         this.minCourse = minCourse;
@@ -48,4 +48,23 @@ public class PostProject {
         this.title = title;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public ProjectType getProjectType() {
+        return projectType;
+    }
+
+    public List<Skill> getStack() {
+        return new ArrayList<>(stack);
+    }
+
+    public int getMinCourse() {
+        return minCourse;
+    }
 }

@@ -119,8 +119,7 @@ public class UserService {
             userProjectRepository.delete(userInThisProject.get());
             projectRepository.delete(project); // Удаляем проект если в нём больше нет участников
         } else {
-            userProjectRepository.delete(userInThisProject.get());
-
+            userInThisProject.get().getUserEntity().leaveTheProject(userInThisProject.get());
             // Если пользователь не капитан
             if (userInThisProject.get().getProjectRole() != ProjectRole.CAPTAIN) return;
 

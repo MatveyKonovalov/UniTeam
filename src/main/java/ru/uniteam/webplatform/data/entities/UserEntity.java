@@ -56,7 +56,10 @@ public class UserEntity {
     private University university;
 
     @Column(name = "current_amount_project", nullable = false)
-    private int currentAmountProject;
+    private int currentAmountProject = (int) userProjectEntities
+            .stream()
+            .filter(up -> up.getProjectRole() != ProjectRole.CANCELLED)
+            .count();
 
     @Column(name = "course", nullable = false)
     private int course;
@@ -75,7 +78,7 @@ public class UserEntity {
     @Setter
     private String refreshToken;
 
-    @Column(name="refresh_token_expire")
+    @Column(name = "refresh_token_expire")
     @Setter
     private LocalDateTime refreshTokenExpire;
 
@@ -116,7 +119,7 @@ public class UserEntity {
 
     public void addProjectEntity(ProjectEntity projectEntity, ProjectRole role) {
         // Если этот проект уже есть у пользователя
-        if (userProjectEntities.stream().map(UserProjectEntity::getProjectEntity).toList().contains(projectEntity)){
+        if (userProjectEntities.stream().map(UserProjectEntity::getProjectEntity).toList().contains(projectEntity)) {
             return;
         }
 
@@ -127,14 +130,24 @@ public class UserEntity {
         userProjectEntities.add(new UserProjectEntity(this, projectEntity, role));
     }
 
-    public void removeUserProjectEntity(UserProjectEntity userProjectEntity) {
-        userProjectEntities.remove(userProjectEntity);
-        currentAmountProject -= 1;
+
+
+    public void projectCancel(UserProjectEntity userProjectEntity) {
+        userProjectEntity.setProjectRole(ProjectRole.CANCELLED);
+        currentAmountProject--;
     }
-    public boolean canBorrowNewProject(){
+    public void leaveTheProject(UserProjectEntity up){
+        userProjectEntities.remove(up);
+        currentAmountProject --;
+    }
+
+    public boolean canBorrowNewProject() {
         return CanUserBorrowProject.canBorrow(currentAmountProject);
     }
-    public boolean canBorrowSkill(){return CheckUserSkills.canAddSkill(skills.size());}
+
+    public boolean canBorrowSkill() {
+        return CheckUserSkills.canAddSkill(skills.size());
+    }
 
     @Override
     public String toString() {

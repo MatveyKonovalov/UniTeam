@@ -34,14 +34,9 @@ public class UserController {
     }
 
     @PostMapping("/add_skill/{skill}")
-    public ResponseEntity<?> addSkill(@PathVariable Skill skill) {
+    public ResponseEntity<GetUser> addSkill(@PathVariable Skill skill) {
         UserEntity current = getUserFromRequest();
-        try {
-            return ResponseEntity.ok(userService.addSkill(current, skill));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage()));
-        }
-
+        return ResponseEntity.ok(userService.addSkill(current, skill));
     }
 
     @DeleteMapping("/delete_skill/{skill}")
@@ -55,28 +50,21 @@ public class UserController {
     }
 
     @PostMapping("/set_course/{course}")
-    public ResponseEntity<?> setCourse(@PathVariable int course) {
+    public ResponseEntity<GetUser> setCourse(@PathVariable int course) {
         UserEntity user = getUserFromRequest();
-        try {
-            return ResponseEntity.ok(userService.setCourse(user, course));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage()));
-        }
+        return ResponseEntity.ok(userService.setCourse(user, course));
     }
 
     @PostMapping("/join_project/{projectId}")
-    public ResponseEntity<?> joinProject(@PathVariable long projectId) {
+    public ResponseEntity<ApiResponse> joinProject(@PathVariable long projectId) {
         UserEntity current = getUserFromRequest();
-        try {
-            return ResponseEntity.ok(projectService.joinToProject(current, projectId));
-        } catch (IllegalArgumentException | UserHasTooManyProjectsException e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage()));
-        }
+        return ResponseEntity.ok(projectService.joinToProject(current, projectId));
     }
 
     @DeleteMapping("/leave_project/{projectId}")
-    public void leaveTheProject(@PathVariable("projectId") long projectId) {
+    public ResponseEntity<ApiResponse> leaveTheProject(@PathVariable("projectId") long projectId) {
         userService.leaveTheProject(getUserFromRequest(), projectId);
+        return ResponseEntity.ok(new ApiResponse("User leaved from project with id=" + projectId));
     }
 
     private UserEntity getUserFromRequest() {

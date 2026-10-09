@@ -99,13 +99,6 @@ public class ProjectService {
         return userProjectRepository.findAllByProjectEntityId(project);
     }
 
-    private boolean isCaptainOrSubCaptain(UserEntity user, List<UserProjectEntity> members) {
-        return !members.stream()
-                .filter(up -> up.getUserEntity().getId().equals(user.getId()))
-                .filter(up ->
-                        up.getProjectRole() == ProjectRole.CAPTAIN || up.getProjectRole() == ProjectRole.SUBCAPTAIN)
-                .toList().isEmpty();
-    }
 
     public void addNewCandidate(long projectId, long candidateId, UserEntity executor) {
         List<UserProjectEntity> members = getMembers(projectId);
@@ -115,14 +108,95 @@ public class ProjectService {
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
                     .filter(up -> up.getProjectRole() == ProjectRole.CANDIDATE)
                     .findFirst();
-            if (userInProject.isPresent()){
+            if (userInProject.isPresent()) {
                 userInProject.get().setProjectRole(ProjectRole.EMPLOYEE);
-            } else{
+            } else {
                 throw new IllegalArgumentException("User with id=" + candidateId + " not found");
             }
         }
         throw new PermissionException();
     }
 
+    public void cancelProject(long projectId, long candidateId, UserEntity executor) {
+        List<UserProjectEntity> members = getMembers(projectId);
+
+        if (isCaptainOrSubCaptain(executor, members)) {
+            Optional<UserProjectEntity> userInProject = members.stream()
+                    .filter(up -> up.getUserEntity().getId().equals(candidateId))
+                    .filter(up -> up.getProjectRole() == ProjectRole.CANDIDATE)
+                    .findFirst();
+
+            if (userInProject.isPresent()) {
+                userInProject.get().getUserEntity().projectCancel(userInProject.get());
+            } else {
+                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+            }
+        }
+        throw new PermissionException();
+    }
+
+    public GetUserContainer getCancelledCandidates(long projectId, UserEntity executor) {
+        List<UserProjectEntity> members = getMembers(projectId);
+
+        if (isCaptainOrSubCaptain(executor, members)) {
+            return new GetUserContainer(members.stream()
+                    .filter(up -> up.getProjectRole() == ProjectRole.CANCELLED)
+                    .map(up -> userMapper.toGetUserFromUserEntity(up.getUserEntity()))
+                    .toList()
+            );
+        }
+        throw new PermissionException();
+    }
+
+    public void appointAsDeputy(long projectId, long candidateId, UserEntity executor) {
+        List<UserProjectEntity> members = getMembers(projectId);
+
+        if (isCaptain(executor, members)) {
+            Optional<UserProjectEntity> userInProject = members.stream()
+                    .filter(up -> up.getUserEntity().getId().equals(candidateId))
+                    .findFirst();
+
+            if (userInProject.isPresent()) {
+                userInProject.get().setProjectRole(ProjectRole.SUBCAPTAIN);
+            } else {
+                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+            }
+        }
+        throw new PermissionException();
+    }
+
+    public void demotePosition(long projectId, long candidateId, UserEntity executor) {
+        List<UserProjectEntity> members = getMembers(projectId);
+
+        if (isCaptain(executor, members)) {
+            Optional<UserProjectEntity> userInProject = members.stream()
+                    .filter(up -> up.getUserEntity().getId().equals(candidateId))
+                    .findFirst();
+
+            if (userInProject.isPresent()) {
+                userInProject.get().setProjectRole(ProjectRole.EMPLOYEE);
+            } else {
+                throw new IllegalArgumentException("User with id=" + candidateId + " not found");
+            }
+        }
+        throw new PermissionException();
+
+    }
+
+
+    private boolean isCaptainOrSubCaptain(UserEntity user, List<UserProjectEntity> members) {
+        return !members.stream()
+                .filter(up -> up.getUserEntity().getId().equals(user.getId()))
+                .filter(up ->
+                        up.getProjectRole() == ProjectRole.CAPTAIN || up.getProjectRole() == ProjectRole.SUBCAPTAIN)
+                .toList().isEmpty();
+    }
+
+    private boolean isCaptain(UserEntity executor, List<UserProjectEntity> members) {
+        return !members.stream()
+                .filter(up -> up.getUserEntity().getId().equals(executor.getId()))
+                .filter(up -> up.getProjectRole() == ProjectRole.CAPTAIN)
+                .toList().isEmpty();
+    }
 
 }

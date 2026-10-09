@@ -35,8 +35,6 @@ public class ProjectEntity {
     @Enumerated(EnumType.STRING)
     private University university;
 
-    @OneToMany(mappedBy = "projectEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserProjectEntity> usersLinks = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(
@@ -69,32 +67,6 @@ public class ProjectEntity {
         this.university = university;
         this.projectType = projectType;
         this.minCourse = minCourse;
-    }
-
-
-    // manager functions
-    public void addSkillInStack(Skill skill) {
-        this.skills.add(skill);
-    }
-
-    public void removeSkillInStack(Skill skill) {
-        this.skills.remove(skill);
-    }
-
-    public void addUserInProject(UserProjectEntity projectEntity) {
-        this.usersLinks.add(projectEntity);
-    }
-
-    public void removeUserInProject(UserProjectEntity projectEntity) {
-        this.usersLinks.remove(projectEntity);
-    }
-
-    public void addProjectTaskEntity(ProjectTaskEntity projectTaskEntity) {
-        this.projectTaskEntities.add(projectTaskEntity);
-    }
-
-    public void removeProjectTaskEntity(ProjectTaskEntity projectTaskEntity){
-        this.projectTaskEntities.remove(projectTaskEntity);
     }
 
     @Override

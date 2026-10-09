@@ -11,6 +11,7 @@ import ru.uniteam.webplatform.data.entities.dto.projects.PostProject;
 import ru.uniteam.webplatform.data.entities.dto.projects.ProjectContainer;
 import ru.uniteam.webplatform.data.entities.dto.projects.ProjectInfo;
 import ru.uniteam.webplatform.data.entities.dto.security.ApiResponse;
+import ru.uniteam.webplatform.data.entities.dto.users.GetUserContainer;
 import ru.uniteam.webplatform.data.services.projects.ProjectService;
 import ru.uniteam.webplatform.data.services.users.UserService;
 import lombok.RequiredArgsConstructor;
@@ -38,36 +39,56 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}")
-    public ResponseEntity<?> getInfoAboutProject(@PathVariable long projectId) {
-        try {
-            return ResponseEntity.ok(projectService.getProjectById(projectId));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage()));
-        }
+    public ResponseEntity<ProjectInfo> getInfoAboutProject(@PathVariable long projectId) {
+        return ResponseEntity.ok(projectService.getProjectById(projectId));
+
     }
 
     @GetMapping("/{projectId}/candidates")
-    public ResponseEntity<?> getCandidatesByProjectId(@PathVariable long projectId) {
-        try {
-            return ResponseEntity.ok(projectService.getCandidates(projectId, getUserFromRequest()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage()));
-        } catch (PermissionException e) {
-            return ResponseEntity.status(403).body(new ApiResponse(e.getMessage()));
-        }
+    public ResponseEntity<GetUserContainer> getCandidatesByProjectId(@PathVariable long projectId) {
+        return ResponseEntity.ok(projectService.getCandidates(projectId, getUserFromRequest()));
+
     }
 
     @PostMapping("/{projectId}/add/{candidateId}")
-    public ResponseEntity<?> addCandidate(@PathVariable long projectId, @PathVariable long candidateId) {
-        try {
-            projectService.addNewCandidate(projectId, candidateId, getUserFromRequest());
-            return ResponseEntity.ok(new ApiResponse("User has been added"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage()));
-        } catch (PermissionException e) {
-            return ResponseEntity.status(403).body(new ApiResponse(e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse> addCandidate(@PathVariable long projectId, @PathVariable long candidateId) {
+        projectService.addNewCandidate(projectId, candidateId, getUserFromRequest());
+        return ResponseEntity.ok(new ApiResponse("User has been added"));
     }
+
+    @PostMapping("/{projectId}/cancel/{candidateId}")
+    public ResponseEntity<ApiResponse> cancelCandidate(@PathVariable long projectId, @PathVariable long candidateId) {
+        projectService.cancelProject(projectId, candidateId, getUserFromRequest());
+        return ResponseEntity.ok(new ApiResponse("User has been canceled"));
+
+    }
+
+    @GetMapping("/{projectId}/cancelled_candidates")
+    public ResponseEntity<GetUserContainer> getCancelledCandidates(@PathVariable long projectId) {
+        return ResponseEntity.ok(projectService.getCancelledCandidates(projectId, getUserFromRequest()));
+
+    }
+
+    @PostMapping("/{projectId}/appoint_as_deputy/{employerId}")
+    public ResponseEntity<ApiResponse> appointAsDeputy(@PathVariable long projectId, @PathVariable long employerId) {
+
+        projectService.appointAsDeputy(projectId, employerId, getUserFromRequest());
+        return ResponseEntity.ok(
+                new ApiResponse("The user with id=" + employerId +
+                        " became a deputy on the project with id=" + projectId));
+
+    }
+
+    @PostMapping("/{projectId}/demote_position/{employerId}")
+    public ResponseEntity<ApiResponse> demotePosition(@PathVariable long projectId, @PathVariable long employerId) {
+
+        projectService.demotePosition(projectId, employerId, getUserFromRequest());
+        return ResponseEntity.ok(
+                new ApiResponse("The user with id=" +
+                        employerId + "has become an employee in project with id=" + projectId));
+
+    }
+
 
     private UserEntity getUserFromRequest() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
