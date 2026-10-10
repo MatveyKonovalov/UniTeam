@@ -43,6 +43,7 @@ public class ProjectEntity {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "skill", nullable = false, length = 50)
+    @Setter
     private Set<Skill> skills = new HashSet<>();
 
     @Enumerated(EnumType.STRING)

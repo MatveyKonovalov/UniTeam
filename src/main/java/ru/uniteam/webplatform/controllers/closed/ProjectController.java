@@ -81,20 +81,25 @@ public class ProjectController {
 
     @DeleteMapping("/{projectId}/{employeeId}")
     public ResponseEntity<ApiResponse> deleteUserINProjectById(@PathVariable long projectId,
-                                                               @PathVariable long employeeId){
+                                                               @PathVariable long employeeId) {
         projectService.deleteUser(projectId, employeeId, getUserFromRequest());
         return ResponseEntity.ok(new ApiResponse("The user with id=" + employeeId
                 + "has deleted from project with id=" + projectId));
     }
 
     @GetMapping("/{projectId}/members")
-    public ResponseEntity<UserInProjectContainer> getMembers(@PathVariable long projectId){
+    public ResponseEntity<UserInProjectContainer> getMembers(@PathVariable long projectId) {
         return ResponseEntity.ok(projectService.getMembersInProject(projectId));
     }
 
+    @PutMapping("/{projectId}/common_info")
+    public ResponseEntity<ProjectInfo> updateProject(@PathVariable long projectId, @RequestBody PutProject putProject) {
+        return ResponseEntity.ok(projectService.updateProject(projectId, putProject, getUserFromRequest()));
+    }
 
     private UserEntity getUserFromRequest() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userService.getUserByEmail(email);
     }
+
 }

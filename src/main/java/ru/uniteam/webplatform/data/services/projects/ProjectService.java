@@ -17,6 +17,7 @@ import ru.uniteam.webplatform.data.repositories.UserProjectRepository;
 import ru.uniteam.webplatform.data.services.users.UserMapper;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,8 +64,12 @@ public class ProjectService {
         ProjectEntity project = getProject(projectId);
 
         if (user.canBorrowNewProject()) {
-            user.addProjectEntity(project, ProjectRole.CANDIDATE);
-            return new ApiResponse("You application has been submitted");
+            if (user.getCourse() >= project.getMinCourse()){
+                user.addProjectEntity(project, ProjectRole.CANDIDATE);
+                return new ApiResponse("You application has been submitted");
+            } else{
+                throw new IllegalArgumentException("Your rate is lower than the minimum specified in the project");
+            }
         }
         throw new IllegalArgumentException("Too many projects");
     }
@@ -231,6 +236,26 @@ public class ProjectService {
                         up.getUserEntity().getEmail(),
                         up.getProjectRole()))
                 .toList());
+    }
+
+    public ProjectInfo updateProject(long projectId, PutProject putProject, UserEntity executor){
+        List<UserProjectEntity> members = getMembers(projectId);
+
+        if (isCaptainOrSubCaptain(executor, members)){
+            if (members.getFirst() != null){
+                ProjectEntity project = members.getFirst().getProjectEntity();
+
+                project.setDescription(putProject.getDescription());
+                project.setName(putProject.getTitle());
+                project.setSkills(new HashSet<>(putProject.getStack()));
+
+                return mapper.toGetProjectFromProjectEntity(project);
+            } else{
+                throw new IllegalArgumentException("The project with id=" + projectId + " not found");
+            }
+        } else{
+            throw new PermissionException();
+        }
     }
 
     private boolean isCaptainOrSubCaptain(UserEntity user, List<UserProjectEntity> members) {
