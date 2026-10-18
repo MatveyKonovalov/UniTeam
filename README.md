@@ -1,92 +1,205 @@
-# Konovalov_M_N
+# 🎓 UniTeam — Платформа для межстуденческого взаимодействия
 
+<div align="center">
 
+[![Status](https://img.shields.io/badge/status-alpha-orange?style=for-the-badge)](https://github.com/MatveyKonovalov/UniTeam)
+[![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-green?style=for-the-badge&logo=spring)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Latest-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![JWT](https://img.shields.io/badge/JWT-Security-blueviolet?style=for-the-badge)](https://jwt.io/)
 
-## Getting started
+**Платформа, которая связывает студентов вузов для совместных проектов и командной работы**
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+[GitHub](https://github.com/MatveyKonovalov/UniTeam) • [О проекте](#-о-проекте) • [Функциональность](#-функциональность) • [Установка](#-установка) • [API](#-api) • [Архитектура](#-архитектура)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+</div>
 
-## Add your files
+---
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## ⚠️ Статус проекта: альфа-версия
 
+UniTeam находится на стадии **alpha**. Основной функционал (регистрация, профиль, каталог проектов, карточка проекта с управлением командой) уже работает, но проект активно развивается:
+
+- API и структура базы данных могут меняться без обратной совместимости;
+- возможны баги и недоработки, часть функций (задачи, дедлайны, публичный API) ещё не реализована;
+- не рекомендуется использовать в production и хранить важные данные.
+
+Исходный код: **https://github.com/MatveyKonovalov/UniTeam**
+
+Нашёл ошибку или есть идея? Создай [issue](https://github.com/MatveyKonovalov/UniTeam/issues) в репозитории.
+
+---
+
+## 🚀 О проекте
+
+**UniTeam** — это веб-платформа, которая помогает студентам внутри одного учебного заведения находить единомышленников и объединяться в команды для выполнения проектов.
+
+### Проблема, которую я решаю
+
+- 😞 Студенты не знают, с кем сотрудничать над проектами
+- 📍 Сложно найти людей из своего вуза с нужными навыками
+- 🎯 Нет удобного способа управлять командными задачами
+- ⏰ Отсутствует система отслеживания дедлайнов
+
+### Моё решение
+
+- ✅ Найти открытые команды в своём вузе за несколько кликов
+- ✅ Просмотреть профили участников и их навыки
+- ✅ Присоединиться к интересующему проекту
+- ✅ Распределять задачи и отслеживать прогресс
+- ✅ Управлять дедлайнами и уведомлениями
+
+---
+
+## ✨ Функциональность
+
+### 👤 Для пользователей
+
+- **Регистрация и авторизация** через JWT токены
+- **Профиль студента** с указанием университета, курса и навыков
+- **Поиск команд** по вузу и фильтрам
+- **Просмотр открытых проектов** с описанием и требованиями
+- **Карточка проекта** — описание, стек, состав команды и ваша роль
+- **Присоединение к команде** и выход из неё
+- **Управление профилем** (редактирование информации)
+
+### 👥 Для командных лидеров
+
+- **Создание проекта** с указанием целей и требований
+- **Редактирование проекта** (название, описание, стек технологий)
+- **Рассмотрение заявок** — принять или отклонить кандидата
+- **Управление составом** — удаление участников
+- **Управление ролями** — назначение и снятие заместителя
+- **Создание задач** для участников *(в разработке)*
+- **Отслеживание прогресса** команды *(в разработке)*
+
+### 🔑 Роли в проекте
+
+Интерфейс показывает только те действия, которые доступны текущему пользователю в конкретном проекте. Права проверяются и на бэкенде.
+
+| Действие | Капитан | Заместитель | Участник | Не в проекте |
+|---|:---:|:---:|:---:|:---:|
+| Просмотр карточки и состава | ✅ | ✅ | ✅ | ✅ |
+| Подать заявку | — | — | — | ✅ |
+| Покинуть проект | ✅ | ✅ | ✅ | — |
+| Редактировать проект | ✅ | ✅ | — | — |
+| Принимать / отклонять заявки | ✅ | ✅ | — | — |
+| Удалить участника | ✅ | ✅ | — | — |
+| Удалить заместителя | ✅ | — | — | — |
+| Назначить / понизить заместителя | ✅ | — | — | — |
+
+Если капитан покидает проект, его роль переходит заместителю (или другому участнику). Если уходит последний участник, проект удаляется.
+
+### 🛡️ Безопасность
+
+- **JWT аутентификация** для защиты endpoints
+- **Role-based access control** (RBAC) — разделение прав
+- **Шифрование паролей** с использованием BCrypt
+- **Проверка принадлежности** к команде перед доступом
+
+---
+
+## 🛠️ Стек технологий
+
+### Backend
+- **Java 21** — современная версия языка
+- **Spring Boot 4.1** — фреймворк для быстрой разработки
+- **Spring Security** — аутентификация и авторизация
+- **Spring Data JPA** — работа с базой данных
+- **JWT (jjwt)** — токены для безопасности
+
+### Frontend
+- **Vanilla JS** — одностраничный интерфейс в `frontend-server/public/index.html`
+- **Node.js 18+** — отдельный сервер, раздающий интерфейс и проксирующий `/api/...` в backend (без внешних npm-зависимостей)
+
+### Database
+- **PostgreSQL** — надёжная реляционная БД
+- **Hibernate** — ORM для работы с данными
+
+### Build & Tools
+- **Gradle Kotlin DSL** — управление зависимостями
+- **Lombok** — уменьшение boilerplate кода
+- **JUnit 5** — модульное тестирование
+
+### Architecture
+- **Multi-module проект** (webplatform + domain)
+- **Clean Architecture** — разделение на слои
+- **DTO паттерн** — для передачи данных между слоями
+- **Service слой** — бизнес-логика
+- **Repository паттерн** — работа с БД
+
+---
+
+## 📦 Установка
+
+### Требования
+
+- JDK 21
+- PostgreSQL (настройки подключения — в `src/main/resources/application.properties`)
+- Gradle (или IntelliJ IDEA)
+- Node.js 18 или новее
+
+### Запуск
+
+```bash
+# 1. Клонировать репозиторий
+git clone https://github.com/MatveyKonovalov/UniTeam.git
+cd UniTeam
+
+# 2. Запустить PostgreSQL и backend (http://localhost:8080)
+gradle bootRun
+
+# 3. В другом терминале запустить frontend (http://localhost:3000)
+cd frontend-server
+npm start
 ```
-cd existing_repo
-git remote add origin https://git.cloud.mephi.ru/kmn011/konovalov_m_n.git
-git branch -M master
-git push -uf origin master
+
+Открой **http://localhost:3000**. Проверить frontend-сервер можно по `http://localhost:3000/health`.
+
+Если backend работает на другом адресе:
+
+```bash
+BACKEND_URL=http://localhost:8081 PORT=3000 npm start
 ```
 
-## Integrate with your tools
+Подробнее — в [FRONTEND_RUN.md](FRONTEND_RUN.md).
 
-- [ ] [Set up project integrations](https://git.cloud.mephi.ru/kmn011/konovalov_m_n/-/settings/integrations)
+---
 
-## Collaborate with your team
+## 🔌 API
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Базовый префикс: `/api/v0`. Все эндпоинты, кроме `auth` и `info`, требуют заголовок `Authorization: Bearer <accessToken>`.
 
-## Test and Deploy
+| Группа | Эндпоинты |
+|---|---|
+| Авторизация | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout` |
+| Справочники | `GET /info/universities`, `GET /info/skills`, `GET /info/projectTypes` |
+| Профиль | `GET /users`, `POST /users/add_skill/{skill}`, `DELETE /users/delete_skill/{skill}`, `POST /users/set_course/{course}`, `POST /users/set_university/{un}` |
+| Участие в проектах | `POST /users/join_project/{projectId}`, `DELETE /users/leave_project/{projectId}` |
+| Проекты | `GET /projects`, `POST /projects`, `GET /projects/{id}`, `PUT /projects/{id}/common_info` |
+| Состав и заявки | `GET /projects/{id}/members`, `GET /projects/{id}/candidates`, `GET /projects/{id}/cancelled_candidates`, `POST /projects/{id}/add/{userId}`, `POST /projects/{id}/cancel/{userId}` |
+| Роли | `POST /projects/{id}/appoint_as_deputy/{userId}`, `POST /projects/{id}/demote_position/{userId}`, `DELETE /projects/{id}/{userId}` |
 
-Use the built-in continuous integration in GitLab.
+---
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Бизнес логика
 
-***
+### Для пользователей
+- **Количество навыков** - максимум пользователь может владеть 10 навыками
+- **Количество проектов** - максимум пользователь может состоять в 5 проектах
+- **Ограничение на курс** - не может присоединиться к проекту,
+  если его курс меньше минимального указанного в этом проекте
 
-# Editing this README
+### Для проектов
+- **Стек технологий** - максимум 20 технологий в стеке
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 
-## Name
-Choose a self-explaining name for your project.
+---
+<div align="center">
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+**Сделано с ❤️ для студентов**
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+⭐ Если проект вам нравится, не забудьте поставить звёздочку на [GitHub](https://github.com/MatveyKonovalov/UniTeam)!
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+</div>
