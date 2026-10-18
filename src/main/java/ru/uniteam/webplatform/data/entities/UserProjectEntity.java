@@ -60,4 +60,15 @@ public class UserProjectEntity {
         if (!(o instanceof UserProjectEntity that)) return false;
         return id != null && id.equals(that.id);
     }
+
+    @Override
+    public String toString() {
+        return "UserProjectEntity(" +
+                "id=" + id +
+                ", userEntity=" + userEntity +
+                ", projectEntity=" + projectEntity +
+                ", projectRole=" + projectRole +
+                ", joiningTime=" + joiningTime +
+                ')';
+    }
 }

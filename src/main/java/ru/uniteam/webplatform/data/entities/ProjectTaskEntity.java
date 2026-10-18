@@ -62,4 +62,16 @@ public class ProjectTaskEntity {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        return "ProjectTaskEntity(" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", taskStatus=" + taskStatus +
+                ", taskType=" + taskType +
+                ", projectEntity=" + projectEntity +
+                ')';
+    }
 }

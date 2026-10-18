@@ -81,4 +81,17 @@ public class ProjectEntity {
     public int hashCode() {
         return projectId != null ? projectId.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        return "ProjectEntity(" +
+                "projectId=" + projectId +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", stars=" + stars +
+                ", university=" + university +
+                ", projectType=" + projectType +
+                ", minCourse=" + minCourse +
+                ')';
+    }
 }

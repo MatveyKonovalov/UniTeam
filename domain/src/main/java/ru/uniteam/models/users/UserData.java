@@ -11,10 +11,10 @@ import ru.uniteam.usecases.skills.CheckUserSkills;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserData {
-    private final String incorrectFirstNameMessage = "The first name must not be null and length must be < 50";
-    private final String incorrectLastNameMessage = "The last name must not be null and length must be < 50";
-    private final String incorrectUserPassword = "The user password must not be null";
+public abstract class UserData {
+    private static final String incorrectFirstNameMessage = "The first name must not be null and length must be < 50";
+    private static final String incorrectLastNameMessage = "The last name must not be null and length must be < 50";
+    private static final String incorrectUserPassword = "The user password must not be null";
 
     private String firstName;
     private String lastName;
@@ -93,5 +93,17 @@ public class UserData {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public String toString() {
+        return "UserData(" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", university=" + university +
+                ", course=" + course +
+                ", skills=" + skills +
+                ')';
     }
 }

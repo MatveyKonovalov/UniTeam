@@ -148,14 +148,14 @@ public class UserEntity {
 
     @Override
     public String toString() {
-        return "UserEntity{" +
+        return "UserEntity(" +
                 "email='" + email + '\'' +
                 ", id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", currentAmountProject=" + currentAmountProject + '\'' +
                 ", course=" + course + '\'' +
-                '}';
+                ')';
     }
 
     @Override

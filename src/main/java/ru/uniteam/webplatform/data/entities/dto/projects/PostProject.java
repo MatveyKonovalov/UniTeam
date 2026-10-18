@@ -67,4 +67,15 @@ public class PostProject {
     public int getMinCourse() {
         return minCourse;
     }
+
+    @Override
+    public String toString() {
+        return "PostProject{" +
+                "title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", projectType=" + projectType +
+                ", stack=" + stack +
+                ", minCourse=" + minCourse +
+                '}';
+    }
 }
