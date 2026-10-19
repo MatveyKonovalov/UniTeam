@@ -79,6 +79,17 @@ public class UserEntity {
     @Setter
     private LocalDateTime refreshTokenExpire;
 
+    @ManyToMany()
+    @JoinTable(
+            name = "students_stars",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "project_id"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_user_project_star",
+                    columnNames = {"student_id", "project_id"})
+    )
+    @Column(name = "project_stars", nullable = false)
+    private final Set<ProjectEntity> projectsStars = new HashSet<>();
+
     public UserEntity() {
     }
 
@@ -128,14 +139,14 @@ public class UserEntity {
     }
 
 
-
     public void projectCancel(UserProjectEntity userProjectEntity) {
         userProjectEntity.setProjectRole(ProjectRole.CANCELLED);
         currentAmountProject--;
     }
-    public void leaveTheProject(UserProjectEntity up){
+
+    public void leaveTheProject(UserProjectEntity up) {
         userProjectEntities.remove(up);
-        currentAmountProject --;
+        currentAmountProject--;
     }
 
     public boolean canBorrowNewProject() {
@@ -144,6 +155,14 @@ public class UserEntity {
 
     public boolean canBorrowSkill() {
         return CheckUserSkills.canAddSkill(skills.size());
+    }
+
+    public void deleteProjectStar(ProjectEntity projectEntity) {
+        projectsStars.remove(projectEntity);
+    }
+
+    public void addProjectStar(ProjectEntity projectEntity) {
+        projectsStars.add(projectEntity);
     }
 
     @Override

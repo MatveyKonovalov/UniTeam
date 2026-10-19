@@ -57,6 +57,13 @@ public class ProjectEntity {
     @Column(name = "min_course")
     private int minCourse;
 
+    @ManyToMany(mappedBy = "projectsStars")
+    private final Set<UserEntity> usersStars = new HashSet<>();
+
+    public int getStars() {
+        return usersStars.size();
+    }
+
     public ProjectEntity() {
     }
 

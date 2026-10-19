@@ -6,6 +6,7 @@ import ru.uniteam.models.users.ProjectRole;
 import ru.uniteam.webplatform.data.entities.ProjectEntity;
 import ru.uniteam.webplatform.data.entities.UserEntity;
 import ru.uniteam.webplatform.data.entities.UserProjectEntity;
+import ru.uniteam.webplatform.data.entities.dto.projects.ProjectContainer;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUser;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUserContainer;
 import ru.uniteam.webplatform.data.repositories.ProjectRepository;
@@ -14,6 +15,7 @@ import ru.uniteam.webplatform.data.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.uniteam.webplatform.data.services.projects.ProjectMapper;
 
 import java.util.Comparator;
 import java.util.List;
@@ -27,14 +29,17 @@ public class UserService {
     private final UserMapper mapper;
     private final UserProjectRepository userProjectRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectMapper projectMapper;
 
     @Autowired
     public UserService(UserRepository userRepository, UserMapper mapper,
-                       UserProjectRepository userProjectRepository, ProjectRepository projectRepository) {
+                       UserProjectRepository userProjectRepository,
+                       ProjectRepository projectRepository, ProjectMapper projectMapper) {
         this.repository = userRepository;
         this.mapper = mapper;
         this.userProjectRepository = userProjectRepository;
         this.projectRepository = projectRepository;
+        this.projectMapper = projectMapper;
     }
 
     public GetUserContainer getUsers(University university, Integer course) {
@@ -93,6 +98,7 @@ public class UserService {
         userEntity.setCourse(course);
         return mapper.toGetUserFromUserEntity(userEntity);
     }
+
     /*
     Действие: Пользователь покидает проект
     Бизнес логика:
@@ -103,8 +109,7 @@ public class UserService {
         иначе новым капитаном становится пользователь, который присоединился раньше всех
      */
     public void leaveTheProject(UserEntity user, long projectId) {
-        ProjectEntity project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project with id=" + projectId + " not found"));
+        ProjectEntity project = searchProjectById(projectId);
 
         List<UserProjectEntity> usersInThisProject = userProjectRepository
                 .findAllByProjectEntityId(project);
@@ -131,14 +136,32 @@ public class UserService {
             if (subCaptain.isPresent()) {
                 subCaptain.get().setProjectRole(ProjectRole.CAPTAIN);
             } else {
-
                 usersInThisProject.stream()
                         .filter(up -> !up.getUserEntity().getId().equals(user.getId()))
                         .findFirst()
                         .ifPresent(up -> up.setProjectRole(ProjectRole.CAPTAIN));
             }
         }
+    }
 
+    public void giveStarProject(UserEntity executor, long projectId) {
+        ProjectEntity project = searchProjectById(projectId);
+        executor.addProjectStar(project);
+    }
 
+    public void deleteStarProject(UserEntity executor, long projectId) {
+        ProjectEntity project = searchProjectById(projectId);
+        executor.deleteProjectStar(project);
+    }
+
+    public ProjectContainer getProjectsStar(UserEntity executor) {
+        return new ProjectContainer(executor.getProjectsStars().stream()
+                .map(projectMapper::toGetProjectFromProjectEntity)
+                .toList());
+    }
+
+    private ProjectEntity searchProjectById(long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project with id=" + projectId + " not found"));
     }
 }
