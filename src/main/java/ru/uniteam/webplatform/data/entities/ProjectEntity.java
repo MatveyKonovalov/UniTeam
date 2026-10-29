@@ -52,7 +52,7 @@ public class ProjectEntity {
     private ProjectType projectType;
 
     @OneToMany(mappedBy = "projectEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ProjectTaskEntity> projectTaskEntities = new HashSet<>();
+    private final Set<ProjectTaskEntity> tasks = new HashSet<>();
 
     @Column(name = "min_course")
     private int minCourse;
@@ -65,6 +65,14 @@ public class ProjectEntity {
     }
 
     public ProjectEntity() {
+    }
+
+    public void addTask(ProjectTaskEntity newTask) {
+        tasks.add(newTask);
+    }
+
+    public Set<ProjectTaskEntity> getTasks(){
+        return new HashSet<>(tasks);
     }
 
     public ProjectEntity(String name, String description, int stars,

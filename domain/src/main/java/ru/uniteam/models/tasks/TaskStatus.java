@@ -3,7 +3,8 @@ package ru.uniteam.models.tasks;
 public enum TaskStatus {
     ACTIVE("Активная"),
     IN_PROGRESS("В прогрессе"),
-    COMPLETED("Выполнена");
+    COMPLETED("Выполнена"),
+    INCOMPLETED("Отказано");
 
     private final String title;
 

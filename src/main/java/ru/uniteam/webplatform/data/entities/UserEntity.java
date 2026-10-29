@@ -90,6 +90,9 @@ public class UserEntity {
     @Column(name = "project_stars", nullable = false)
     private final Set<ProjectEntity> projectsStars = new HashSet<>();
 
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjectTaskEntity> tasks;
+
     public UserEntity() {
     }
 
@@ -124,6 +127,7 @@ public class UserEntity {
     public void removeSkill(Skill skillEntity) {
         this.skills.remove(skillEntity);
     }
+
 
     public void addProjectEntity(ProjectEntity projectEntity, ProjectRole role) {
         // Если этот проект уже есть у пользователя

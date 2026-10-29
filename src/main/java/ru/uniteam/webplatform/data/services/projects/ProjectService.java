@@ -9,11 +9,14 @@ import ru.uniteam.webplatform.data.entities.UserProjectEntity;
 import ru.uniteam.webplatform.data.entities.dto.projects.*;
 import ru.uniteam.webplatform.data.entities.dto.security.ApiResponse;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUserContainer;
+import ru.uniteam.webplatform.data.entities.usecases.DeleteUserInProject;
 import ru.uniteam.webplatform.data.repositories.ProjectRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.uniteam.webplatform.data.repositories.ProjectTaskRepository;
 import ru.uniteam.webplatform.data.repositories.UserProjectRepository;
+import ru.uniteam.webplatform.data.services.CommonHelper;
 import ru.uniteam.webplatform.data.services.users.UserMapper;
 
 import java.util.Collections;
@@ -29,6 +32,8 @@ public class ProjectService {
     private final ProjectMapper mapper;
     private final UserProjectRepository userProjectRepository;
     private final UserMapper userMapper;
+    private final CommonHelper commonHelper;
+    private final DeleteUserInProject deleteUserInProject;
 
     public ProjectAllInfo addNewProject(UserEntity captain, PostProject project) {
         if (captain.canBorrowNewProject()) {
@@ -60,14 +65,23 @@ public class ProjectService {
         return new ProjectContainer(projects.stream().map(mapper::toGetProjectFromProjectEntity).toList());
     }
 
+    /*
+    Подача заявки:
+        1) Проверка: не превысил ли пользователь лимит проектов
+        2) Поиск проекта по id
+        3) Проверка на курс, может ли пользователь вступить в проект
+        4) Подача заявки (у пользователя на время рассмотрения увеличивается счётчик текущих проектов)
+     */
     public ApiResponse joinToProject(UserEntity user, long projectId) {
-        ProjectEntity project = getProject(projectId);
+
 
         if (user.canBorrowNewProject()) {
-            if (user.getCourse() >= project.getMinCourse()){
+            ProjectEntity project = commonHelper.getProject(projectId);
+
+            if (user.getCourse() >= project.getMinCourse()) {
                 user.addProjectEntity(project, ProjectRole.CANDIDATE);
                 return new ApiResponse("You application has been submitted");
-            } else{
+            } else {
                 throw new IllegalArgumentException("Your rate is lower than the minimum specified in the project");
             }
         }
@@ -75,12 +89,12 @@ public class ProjectService {
     }
 
     public ProjectInfo getProjectById(long id) {
-        return mapper.toGetProjectFromProjectEntity(getProject(id));
+        return mapper.toGetProjectFromProjectEntity(commonHelper.getProject(id));
     }
 
     public GetUserContainer getCandidates(long projectId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
-        if (isCaptainOrSubCaptain(executor, members)) {
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
+        if (commonHelper.isCaptainOrSubCaptain(executor, members)) {
             return new GetUserContainer(members.stream()
                     .filter(up -> up.getProjectRole() == ProjectRole.CANDIDATE)
                     .map(UserProjectEntity::getUserEntity)
@@ -91,22 +105,17 @@ public class ProjectService {
         }
     }
 
-    private ProjectEntity getProject(long projectId) {
-        return projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project with id=" + projectId + " not found"));
-    }
-
-    private List<UserProjectEntity> getMembers(long projectId) {
-        ProjectEntity project = getProject(projectId);
-
-        return userProjectRepository.findAllByProjectEntityId(project);
-    }
-
-
+    /*
+    Добавление пользователя в проект:
+        1) Поиск участников проекта
+        2) Проверка прав исполняющего -> Зам. или капитан
+        3) Проверка: подавал ли кандидат заявку в проект (и не участник ли он проекта сейчас)
+        4) Назначаем работником
+     */
     public void addNewCandidate(long projectId, long candidateId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
-        if (isCaptainOrSubCaptain(executor, members)) {
+        if (commonHelper.isCaptainOrSubCaptain(executor, members)) {
             Optional<UserProjectEntity> userInProject = members.stream()
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
                     .filter(up -> up.getProjectRole() == ProjectRole.CANDIDATE)
@@ -121,10 +130,17 @@ public class ProjectService {
         }
     }
 
+    /*
+    Отмена заявки пользователя:
+        1) Поиск участников проекта
+        2) Проверка прав исполняющего -> Зам. или капитан
+        3) Проверка: подавал ли кандидат заявку в проект (и не участник ли он проекта сейчас)
+        4) Отказ пользователю -> его счётчик проектов уменьшается и статус в проекте становится (CANCELLED)
+     */
     public void cancelProject(long projectId, long candidateId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
-        if (isCaptainOrSubCaptain(executor, members)) {
+        if (commonHelper.isCaptainOrSubCaptain(executor, members)) {
             Optional<UserProjectEntity> userInProject = members.stream()
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
                     .filter(up -> up.getProjectRole() == ProjectRole.CANDIDATE)
@@ -141,9 +157,9 @@ public class ProjectService {
     }
 
     public GetUserContainer getCancelledCandidates(long projectId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
-        if (isCaptainOrSubCaptain(executor, members)) {
+        if (commonHelper.isCaptainOrSubCaptain(executor, members)) {
             return new GetUserContainer(members.stream()
                     .filter(up -> up.getProjectRole() == ProjectRole.CANCELLED)
                     .map(up -> userMapper.toGetUserFromUserEntity(up.getUserEntity()))
@@ -156,9 +172,9 @@ public class ProjectService {
 
     // Только сотрудник может быть повышен до зама
     public void appointAsDeputy(long projectId, long candidateId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
-        if (isCaptain(executor, members)) {
+        if (commonHelper.isCaptain(executor, members)) {
             Optional<UserProjectEntity> userInProject = members.stream()
                     .filter(up -> up.getProjectRole() == ProjectRole.EMPLOYEE)
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
@@ -174,11 +190,11 @@ public class ProjectService {
         }
     }
 
-    // Только зам может быть понижен до обычного сотрудника
+    // Только зам. может быть понижен до обычного сотрудника
     public void demotePosition(long projectId, long candidateId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
-        if (isCaptain(executor, members)) {
+        if (commonHelper.isCaptain(executor, members)) {
             Optional<UserProjectEntity> userInProject = members.stream()
                     .filter(up -> up.getProjectRole() == ProjectRole.SUBCAPTAIN)
                     .filter(up -> up.getUserEntity().getId().equals(candidateId))
@@ -199,35 +215,29 @@ public class ProjectService {
     Капитан может удалять замов и обычных пользователей
      */
     public void deleteUser(long projectId, long candidateId, UserEntity executor) {
-        List<UserProjectEntity> members = getMembers(projectId);
-        Optional<UserProjectEntity> userInProject = members.stream()
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
+
+        UserProjectEntity userInProject = members.stream()
                 .filter(up ->
                         up.getProjectRole() == ProjectRole.SUBCAPTAIN || up.getProjectRole() == ProjectRole.EMPLOYEE)
                 .filter(up -> up.getUserEntity().getId().equals(candidateId))
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("The User with id=" + candidateId + " not found"));
 
-        if (isCaptain(executor, members)) {
-            if (userInProject.isPresent()) {
-                userInProject.get().getUserEntity().leaveTheProject(userInProject.get());
-            } else {
-                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
+        if (commonHelper.isCaptain(executor, members)) {
+            deleteUserInProject.deleteUserFromProject(userInProject);
+        } else if (commonHelper.isCaptainOrSubCaptain(executor, members)) {
+            if (userInProject.getProjectRole() == ProjectRole.SUBCAPTAIN) {
+                throw new PermissionException("Sub admin cannot delete anther sub admin");
             }
-        } else if (isCaptainOrSubCaptain(executor, members)) {
-            if (userInProject.isPresent()) {
-                if (userInProject.get().getProjectRole() == ProjectRole.SUBCAPTAIN) {
-                    throw new PermissionException("Sub admin cannot delete anther sub admin");
-                }
-                userInProject.get().getUserEntity().leaveTheProject(userInProject.get());
-            } else {
-                throw new IllegalArgumentException("The User with id=" + candidateId + " not found");
-            }
+            deleteUserInProject.deleteUserFromProject(userInProject);
         } else {
             throw new PermissionException();
         }
     }
 
     public UserInProjectContainer getMembersInProject(long projectId) {
-        return new UserInProjectContainer(getMembers(projectId)
+        return new UserInProjectContainer(commonHelper.getMembers(projectId)
                 .stream()
                 .filter(up ->
                         List.of(ProjectRole.EMPLOYEE, ProjectRole.CAPTAIN, ProjectRole.SUBCAPTAIN)
@@ -238,11 +248,11 @@ public class ProjectService {
                 .toList());
     }
 
-    public ProjectInfo updateProject(long projectId, PutProject putProject, UserEntity executor){
-        List<UserProjectEntity> members = getMembers(projectId);
+    public ProjectInfo updateProject(long projectId, PutProject putProject, UserEntity executor) {
+        List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
-        if (isCaptainOrSubCaptain(executor, members)){
-            if (members.getFirst() != null){
+        if (commonHelper.isCaptainOrSubCaptain(executor, members)) {
+            if (members.getFirst() != null) {
                 ProjectEntity project = members.getFirst().getProjectEntity();
 
                 project.setDescription(putProject.getDescription());
@@ -250,27 +260,11 @@ public class ProjectService {
                 project.setSkills(new HashSet<>(putProject.getStack()));
 
                 return mapper.toGetProjectFromProjectEntity(project);
-            } else{
+            } else {
                 throw new IllegalArgumentException("The project with id=" + projectId + " not found");
             }
-        } else{
+        } else {
             throw new PermissionException();
         }
     }
-
-    private boolean isCaptainOrSubCaptain(UserEntity user, List<UserProjectEntity> members) {
-        return !members.stream()
-                .filter(up -> up.getUserEntity().getId().equals(user.getId()))
-                .filter(up ->
-                        up.getProjectRole() == ProjectRole.CAPTAIN || up.getProjectRole() == ProjectRole.SUBCAPTAIN)
-                .toList().isEmpty();
-    }
-
-    private boolean isCaptain(UserEntity executor, List<UserProjectEntity> members) {
-        return !members.stream()
-                .filter(up -> up.getUserEntity().getId().equals(executor.getId()))
-                .filter(up -> up.getProjectRole() == ProjectRole.CAPTAIN)
-                .toList().isEmpty();
-    }
-
 }

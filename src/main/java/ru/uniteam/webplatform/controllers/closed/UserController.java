@@ -18,11 +18,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(CommonPrefix.PREFIX + "users")
-@RequiredArgsConstructor
-public class UserController {
+public class UserController extends UserGetterFromRequest{
 
-    private final UserService userService;
+
     private final ProjectService projectService;
+
+    public UserController(UserService userService, ProjectService projectService){
+        super(userService);
+        this.projectService = projectService;
+    }
 
     @GetMapping()
     public ResponseEntity<?> info() {
@@ -85,8 +89,4 @@ public class UserController {
         return ResponseEntity.ok(userService.getProjectsStar(getUserFromRequest()));
     }
 
-    private UserEntity getUserFromRequest() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userService.getUserByEmail(email);
-    }
 }

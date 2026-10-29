@@ -17,10 +17,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(CommonPrefix.PREFIX + "projects")
-@RequiredArgsConstructor
-public class ProjectController {
+public class ProjectController extends UserGetterFromRequest{
     private final ProjectService projectService;
-    private final UserService userService;
+
+    public ProjectController(UserService userService, ProjectService projectService) {
+        super(userService);
+        this.projectService = projectService;
+    }
 
     @PostMapping()
     public ProjectAllInfo addNewProject(@RequestBody PostProject project) {
@@ -95,11 +98,6 @@ public class ProjectController {
     @PutMapping("/{projectId}/common_info")
     public ResponseEntity<ProjectInfo> updateProject(@PathVariable long projectId, @RequestBody PutProject putProject) {
         return ResponseEntity.ok(projectService.updateProject(projectId, putProject, getUserFromRequest()));
-    }
-
-    private UserEntity getUserFromRequest() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userService.getUserByEmail(email);
     }
 
 }
