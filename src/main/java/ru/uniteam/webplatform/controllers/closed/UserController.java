@@ -7,6 +7,7 @@ import ru.uniteam.models.University;
 import ru.uniteam.models.exceptions.UserHasTooManyProjectsException;
 import ru.uniteam.webplatform.controllers.CommonPrefix;
 import ru.uniteam.webplatform.data.entities.UserEntity;
+import ru.uniteam.webplatform.data.entities.dto.projects.ProjectContainer;
 import ru.uniteam.webplatform.data.entities.dto.security.ApiResponse;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUser;
 import ru.uniteam.webplatform.data.services.projects.ProjectService;
@@ -17,11 +18,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(CommonPrefix.PREFIX + "users")
-@RequiredArgsConstructor
-public class UserController {
+public class UserController extends UserGetterFromRequest{
 
-    private final UserService userService;
+
     private final ProjectService projectService;
+
+    public UserController(UserService userService, ProjectService projectService){
+        super(userService);
+        this.projectService = projectService;
+    }
 
     @GetMapping()
     public ResponseEntity<?> info() {
@@ -67,8 +72,21 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse("User leaved from project with id=" + projectId));
     }
 
-    private UserEntity getUserFromRequest() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userService.getUserByEmail(email);
+    @PostMapping("/give_star/{projectId}")
+    public ResponseEntity<ApiResponse> giveStarProject(@PathVariable("projectId") long projectId){
+        userService.giveStarProject(getUserFromRequest(), projectId);
+        return ResponseEntity.ok(new ApiResponse("You have starred the project with id=" + projectId));
     }
+
+    @DeleteMapping("/delete_star/{projectId}")
+    public ResponseEntity<ApiResponse> deleteStarProject(@PathVariable("projectId") long projectId){
+        userService.deleteStarProject(getUserFromRequest(), projectId);
+        return ResponseEntity.ok(new ApiResponse("You removed the star from the project with id=" + projectId));
+    }
+
+    @PostMapping("/projects_star")
+    public ResponseEntity<ProjectContainer> getProjectsWithStar(){
+        return ResponseEntity.ok(userService.getProjectsStar(getUserFromRequest()));
+    }
+
 }

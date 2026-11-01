@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v0/projects/**").hasAnyRole(roles)
                         .requestMatchers("/api/v0/users", "/api/v0/users/**").hasAnyRole(roles)
                         .requestMatchers("/api/v0/info/**").permitAll()
+                        .requestMatchers("/api/v0/tasks/**").hasAnyRole(roles)
                         .requestMatchers("/api/v0/admin/**").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/v0/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()

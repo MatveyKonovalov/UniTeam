@@ -52,12 +52,34 @@ public class ProjectEntity {
     private ProjectType projectType;
 
     @OneToMany(mappedBy = "projectEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ProjectTaskEntity> projectTaskEntities = new HashSet<>();
+    private final Set<ProjectTaskEntity> tasks = new HashSet<>();
 
     @Column(name = "min_course")
     private int minCourse;
 
+    @ManyToMany()
+    @JoinTable(
+            name = "students_stars",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_user_project_star",
+                    columnNames = {"student_id", "project_id"})
+    )
+    private final Set<UserEntity> usersStars = new HashSet<>();
+
+    public int getStars() {
+        return usersStars.size();
+    }
+
     public ProjectEntity() {
+    }
+
+    public void addTask(ProjectTaskEntity newTask) {
+        tasks.add(newTask);
+    }
+
+    public Set<ProjectTaskEntity> getTasks(){
+        return new HashSet<>(tasks);
     }
 
     public ProjectEntity(String name, String description, int stars,
@@ -80,5 +102,18 @@ public class ProjectEntity {
     @Override
     public int hashCode() {
         return projectId != null ? projectId.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "ProjectEntity(" +
+                "projectId=" + projectId +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", stars=" + stars +
+                ", university=" + university +
+                ", projectType=" + projectType +
+                ", minCourse=" + minCourse +
+                ')';
     }
 }

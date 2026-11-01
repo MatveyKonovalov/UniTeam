@@ -1,8 +1,10 @@
 package ru.uniteam.webplatform.data.services.users;
 
 import ru.uniteam.models.Skill;
+import ru.uniteam.models.users.ProjectRole;
 import ru.uniteam.models.users.UserData;
 import ru.uniteam.webplatform.data.entities.UserEntity;
+import ru.uniteam.webplatform.data.entities.dto.tasks.projectInfo.UserTaskInfo;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUser;
 import org.springframework.stereotype.Component;
 
@@ -40,5 +42,9 @@ public class UserMapper {
 
     public List<GetUser> toGetUserFromUserEntity(List<UserEntity> userEntity) {
         return new ArrayList<>(userEntity.stream().map(this::toGetUserFromUserEntity).toList());
+    }
+
+    public UserTaskInfo toUserTaskInfoFromEntity(UserEntity entity, ProjectRole role){
+        return new UserTaskInfo(entity.getFirstName(), entity.getLastName(), entity.getEmail(), role);
     }
 }

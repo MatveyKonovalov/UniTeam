@@ -79,6 +79,20 @@ public class UserEntity {
     @Setter
     private LocalDateTime refreshTokenExpire;
 
+    @ManyToMany()
+    @JoinTable(
+            name = "students_stars",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "project_id"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_user_project_star",
+                    columnNames = {"student_id", "project_id"})
+    )
+    @Column(name = "project_stars", nullable = false)
+    private final Set<ProjectEntity> projectsStars = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjectTaskEntity> tasks;
+
     public UserEntity() {
     }
 
@@ -114,6 +128,7 @@ public class UserEntity {
         this.skills.remove(skillEntity);
     }
 
+
     public void addProjectEntity(ProjectEntity projectEntity, ProjectRole role) {
         // Если этот проект уже есть у пользователя
         if (userProjectEntities.stream().map(UserProjectEntity::getProjectEntity).toList().contains(projectEntity)) {
@@ -128,14 +143,13 @@ public class UserEntity {
     }
 
 
-
     public void projectCancel(UserProjectEntity userProjectEntity) {
         userProjectEntity.setProjectRole(ProjectRole.CANCELLED);
         currentAmountProject--;
     }
-    public void leaveTheProject(UserProjectEntity up){
-        userProjectEntities.remove(up);
-        currentAmountProject --;
+
+    public void leaveTheProject() {
+        currentAmountProject--;
     }
 
     public boolean canBorrowNewProject() {
@@ -146,16 +160,24 @@ public class UserEntity {
         return CheckUserSkills.canAddSkill(skills.size());
     }
 
+    public void deleteProjectStar(ProjectEntity projectEntity) {
+        projectsStars.remove(projectEntity);
+    }
+
+    public void addProjectStar(ProjectEntity projectEntity) {
+        projectsStars.add(projectEntity);
+    }
+
     @Override
     public String toString() {
-        return "UserEntity{" +
+        return "UserEntity(" +
                 "email='" + email + '\'' +
                 ", id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", currentAmountProject=" + currentAmountProject + '\'' +
                 ", course=" + course + '\'' +
-                '}';
+                ')';
     }
 
     @Override

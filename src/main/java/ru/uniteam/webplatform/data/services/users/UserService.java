@@ -1,19 +1,25 @@
 package ru.uniteam.webplatform.data.services.users;
 
+import lombok.RequiredArgsConstructor;
 import ru.uniteam.models.Skill;
 import ru.uniteam.models.University;
 import ru.uniteam.models.users.ProjectRole;
 import ru.uniteam.webplatform.data.entities.ProjectEntity;
 import ru.uniteam.webplatform.data.entities.UserEntity;
 import ru.uniteam.webplatform.data.entities.UserProjectEntity;
+import ru.uniteam.webplatform.data.entities.dto.projects.ProjectContainer;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUser;
 import ru.uniteam.webplatform.data.entities.dto.users.GetUserContainer;
+import ru.uniteam.webplatform.data.entities.usecases.DeleteUserInProject;
 import ru.uniteam.webplatform.data.repositories.ProjectRepository;
+import ru.uniteam.webplatform.data.repositories.ProjectTaskRepository;
 import ru.uniteam.webplatform.data.repositories.UserProjectRepository;
 import ru.uniteam.webplatform.data.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.uniteam.webplatform.data.services.CommonHelper;
+import ru.uniteam.webplatform.data.services.projects.ProjectMapper;
 
 import java.util.Comparator;
 import java.util.List;
@@ -21,21 +27,17 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository repository;
     private final UserMapper mapper;
     private final UserProjectRepository userProjectRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectMapper projectMapper;
+    private final CommonHelper commonHelper;
+    private final DeleteUserInProject deleteUserInProject;
 
-    @Autowired
-    public UserService(UserRepository userRepository, UserMapper mapper,
-                       UserProjectRepository userProjectRepository, ProjectRepository projectRepository) {
-        this.repository = userRepository;
-        this.mapper = mapper;
-        this.userProjectRepository = userProjectRepository;
-        this.projectRepository = projectRepository;
-    }
 
     public GetUserContainer getUsers(University university, Integer course) {
         if (university != null && course != null) {
@@ -51,12 +53,7 @@ public class UserService {
     }
 
     public GetUser findUserById(long id) {
-        Optional<UserEntity> user = repository.findById(id);
-
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User with id=" + id + " not found");
-        }
-        return mapper.toGetUserFromUserEntity(user.get());
+        return mapper.toGetUserFromUserEntity(commonHelper.getUser(id));
     }
 
     public void deleteUserById(long id) {
@@ -65,7 +62,7 @@ public class UserService {
 
     public UserEntity getUserByEmail(String email) {
         return repository.findUserEntitiesByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User with email=" + email + " not found"));
+                .orElseThrow(() -> new IllegalArgumentException("The User with email=" + email + " not found"));
     }
 
     public GetUser addSkill(UserEntity user, Skill skill) {
@@ -93,6 +90,7 @@ public class UserService {
         userEntity.setCourse(course);
         return mapper.toGetUserFromUserEntity(userEntity);
     }
+
     /*
     Действие: Пользователь покидает проект
     Бизнес логика:
@@ -103,24 +101,28 @@ public class UserService {
         иначе новым капитаном становится пользователь, который присоединился раньше всех
      */
     public void leaveTheProject(UserEntity user, long projectId) {
-        ProjectEntity project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project with id=" + projectId + " not found"));
+        ProjectEntity project = commonHelper.getProject(projectId);
 
         List<UserProjectEntity> usersInThisProject = userProjectRepository
-                .findAllByProjectEntityId(project);
+                .findEmployeesByProjectEntityId(project);
 
 
         Optional<UserProjectEntity> userInThisProject = usersInThisProject.stream()
                 .filter((employee) -> user.getId().equals(employee.getUserEntity().getId())).findFirst();
 
-        if (userInThisProject.isEmpty()) return;
+        if (userInThisProject.isEmpty()) return; // Если у пользователя не было этого проекта
 
+
+        // Удаляем проект если в нём больше нет участников
         if (usersInThisProject.size() == 1) {
-            userProjectRepository.delete(userInThisProject.get());
-            projectRepository.delete(project); // Удаляем проект если в нём больше нет участников
+            // Удаляем пользователя с задачами
+            deleteUserInProject.deleteUserFromProject(userInThisProject.get());
+            // Удаляем проект
+            projectRepository.delete(project);
         } else {
-            userInThisProject.get().getUserEntity().leaveTheProject(userInThisProject.get());
-            // Если пользователь не капитан
+            // Удаляем пользователя из проекта
+            deleteUserInProject.deleteUserFromProject(userInThisProject.get());
+            // Если пользователь не капитан спокойно выходим
             if (userInThisProject.get().getProjectRole() != ProjectRole.CAPTAIN) return;
 
             // Если удаляем капитана
@@ -131,14 +133,29 @@ public class UserService {
             if (subCaptain.isPresent()) {
                 subCaptain.get().setProjectRole(ProjectRole.CAPTAIN);
             } else {
-
                 usersInThisProject.stream()
                         .filter(up -> !up.getUserEntity().getId().equals(user.getId()))
                         .findFirst()
                         .ifPresent(up -> up.setProjectRole(ProjectRole.CAPTAIN));
             }
         }
-
-
     }
+
+    public void giveStarProject(UserEntity executor, long projectId) {
+        ProjectEntity project = commonHelper.getProject(projectId);
+        executor.addProjectStar(project);
+    }
+
+    public void deleteStarProject(UserEntity executor, long projectId) {
+        ProjectEntity project = commonHelper.getProject(projectId);
+        executor.deleteProjectStar(project);
+    }
+
+    public ProjectContainer getProjectsStar(UserEntity executor) {
+        return new ProjectContainer(executor.getProjectsStars().stream()
+                .map(projectMapper::toGetProjectFromProjectEntity)
+                .toList());
+    }
+
+
 }

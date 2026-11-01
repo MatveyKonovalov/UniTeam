@@ -36,7 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     // Роли
-    private Collection<? extends GrantedAuthority> getAuthorities(Role projectRole){
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + projectRole.name()));
+    private Collection<? extends GrantedAuthority> getAuthorities(Role role){
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 }

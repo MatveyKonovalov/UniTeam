@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "projects_tasks")
 @Getter
@@ -37,22 +39,30 @@ public class ProjectTaskEntity {
     @JoinColumn(name = "project_id", nullable = false)
     private ProjectEntity projectEntity;
 
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity userEntity;
+
+    @Column(name = "dead_line")
+    private LocalDateTime deadLine;
+
     public ProjectTaskEntity() {
     }
 
     public ProjectTaskEntity(String title, String description, TaskStatus taskStatus,
-                             TaskType taskType, ProjectEntity projectEntity) {
+                             TaskType taskType, ProjectEntity projectEntity, UserEntity userEntity, LocalDateTime deadline) {
         this.description = description;
         this.title = title;
         this.taskStatus = taskStatus;
         this.taskType = taskType;
         this.projectEntity = projectEntity;
+        this.userEntity = userEntity;
+        this.deadLine = deadline;
     }
 
 
-
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ProjectTaskEntity that)) return false;
         return id != null && id.equals(that.id);
@@ -61,5 +71,18 @@ public class ProjectTaskEntity {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "ProjectTaskEntity(" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", taskStatus=" + taskStatus +
+                ", taskType=" + taskType +
+                ", projectEntity=" + projectEntity +
+                ", userEntity=" + userEntity +
+                ')';
     }
 }
