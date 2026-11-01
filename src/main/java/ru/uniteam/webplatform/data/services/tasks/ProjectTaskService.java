@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.uniteam.models.exceptions.IncorrectTaskUndefinedException;
 import ru.uniteam.models.exceptions.PermissionException;
 import ru.uniteam.models.tasks.TaskStatus;
+import ru.uniteam.models.tasks.TaskType;
 import ru.uniteam.models.users.ProjectRole;
+import ru.uniteam.webplatform.data.entities.ProjectEntity;
 import ru.uniteam.webplatform.data.entities.ProjectTaskEntity;
 import ru.uniteam.webplatform.data.entities.UserEntity;
 import ru.uniteam.webplatform.data.entities.UserProjectEntity;
@@ -17,6 +19,7 @@ import ru.uniteam.webplatform.data.entities.dto.tasks.projectInfo.ProjectTasksCo
 import ru.uniteam.webplatform.data.entities.dto.tasks.userinfo.UserTask;
 import ru.uniteam.webplatform.data.entities.dto.tasks.userinfo.UserTasksContainer;
 import ru.uniteam.webplatform.data.repositories.ProjectTaskRepository;
+import ru.uniteam.webplatform.data.repositories.UserProjectRepository;
 import ru.uniteam.webplatform.data.services.CommonHelper;
 import ru.uniteam.webplatform.data.services.projects.ProjectMapper;
 import ru.uniteam.webplatform.data.services.users.UserMapper;
@@ -32,6 +35,7 @@ public class ProjectTaskService {
     private final ProjectTaskMapper projectTaskMapper;
     private final UserMapper userMapper;
     private final ProjectMapper projectMapper;
+    private final UserProjectRepository userProjectRepository;
 
     /*
     Задачи могут выдавать замы и капитан
@@ -78,17 +82,18 @@ public class ProjectTaskService {
     Принятие задачи в обработку
      */
     public ProjectTaskGet applyTask(UserEntity executor, long taskId) {
-        Set<ProjectTaskEntity> tasks = executor.getTasks();
+        ProjectTaskEntity task = getTaskById(taskId);
 
-        ProjectTaskEntity task = tasks.stream().filter(pt -> pt.getId() == taskId).findFirst()
-                .orElseThrow(IncorrectTaskUndefinedException::new);
-
-        task.setTaskStatus(TaskStatus.IN_PROGRESS);
-        return projectTaskMapper.toProjectTaskGetFromEntity(task);
+        if (task.getUserEntity() == executor) {
+            task.setTaskStatus(TaskStatus.IN_PROGRESS);
+            return projectTaskMapper.toProjectTaskGetFromEntity(task);
+        }
+        throw new IncorrectTaskUndefinedException();
     }
 
     // Все задачи проекта с исполнителями(доступны только участникам проекта)
-    public ProjectTasksContainer getTasksInProject(UserEntity executor, long projectId) {
+    public ProjectTasksContainer getTasksInProject(UserEntity executor, long projectId, TaskStatus taskStatus,
+                                                   TaskType taskType) {
         List<UserProjectEntity> members = commonHelper.getMembers(projectId);
 
         Map<Long, ProjectRole> roles = new HashMap<>();
@@ -100,6 +105,8 @@ public class ProjectTaskService {
             Set<ProjectTaskEntity> tasks = members.getFirst().getProjectEntity().getTasks();
 
             return new ProjectTasksContainer(tasks.stream()
+                    .filter(pt -> (taskStatus == null || pt.getTaskStatus() == taskStatus)
+                            && (taskType == null || pt.getTaskType() == taskType))
                     .map(pt -> new ProjectTaskContainer(
                             projectTaskMapper.toProjectTaskInfo(pt),
                             userMapper.toUserTaskInfoFromEntity(pt.getUserEntity(),
@@ -113,14 +120,71 @@ public class ProjectTaskService {
     }
 
     // Все задачи текущего пользователя
-    public UserTasksContainer getUserTasks(UserEntity executor) {
+    public UserTasksContainer getUserTasks(UserEntity executor, TaskStatus taskStatus, TaskType taskType) {
         List<ProjectTaskEntity> tasks = projectTaskRepository.getUserTasks(executor);
         return new UserTasksContainer(
                 tasks.stream()
+                        .filter(pt -> (taskStatus == null || taskStatus == pt.getTaskStatus()) &&
+                                (taskType == null || taskType == pt.getTaskType()))
                         .map(pte ->
                                 new UserTask(projectMapper.toPrTaskInfoFromProjectEntity(pte.getProjectEntity()),
-                                projectTaskMapper.toProjectTaskInfo(pte)))
+                                        projectTaskMapper.toProjectTaskInfo(pte)))
                         .toList()
         );
+    }
+
+    // Отправить задачу на ревью
+    public ProjectTaskGet sendTaskOnReview(UserEntity executor, long taskId) {
+        ProjectTaskEntity userTask = getTaskById(taskId);
+
+        if (userTask.getUserEntity() == executor) {
+            userTask.setTaskStatus(TaskStatus.ON_REVIEW);
+            return projectTaskMapper.toProjectTaskGetFromEntity(userTask);
+        }
+        throw new PermissionException();
+
+    }
+
+    /* Провести ревью
+    Проводить ревью могут только капитан и замы
+    Ревью задач замов может принимать только капитан
+     */
+    private ProjectTaskGet makeReview(UserEntity executor, long taskId, TaskStatus taskStatus) {
+        ProjectTaskEntity task = getTaskById(taskId);
+        ProjectEntity project = task.getProjectEntity();
+
+        UserProjectEntity executorInProject = userProjectRepository.findUserInProject(executor, project)
+                .orElseThrow(IncorrectTaskUndefinedException::new);
+        UserProjectEntity userInProject = userProjectRepository.findUserInProject(task.getUserEntity(), project)
+                .orElseThrow(IncorrectTaskUndefinedException::new);
+
+
+        if (List.of(ProjectRole.CANDIDATE, ProjectRole.CANCELLED).contains(userInProject.getProjectRole())) {
+            throw new PermissionException();
+        } else if ((userInProject.getProjectRole() == ProjectRole.SUBCAPTAIN &&
+                executorInProject.getProjectRole() == ProjectRole.CAPTAIN)
+                ||
+                userInProject.getProjectRole() == ProjectRole.EMPLOYEE &&
+                        List.of(ProjectRole.CAPTAIN, ProjectRole.SUBCAPTAIN)
+                                .contains(executorInProject.getProjectRole())) {
+
+            task.setTaskStatus(taskStatus);
+            return projectTaskMapper.toProjectTaskGetFromEntity(task);
+        }
+
+        throw new PermissionException();
+    }
+
+    public ProjectTaskGet underDevelopmentTask(UserEntity executor, long taskId) {
+        return makeReview(executor, taskId, TaskStatus.UNDER_DEVELOPMENT);
+    }
+
+    public ProjectTaskGet completeTask(UserEntity executor, long taskId) {
+        return makeReview(executor, taskId, TaskStatus.COMPLETED);
+    }
+
+    private ProjectTaskEntity getTaskById(long taskId) {
+        return projectTaskRepository.findById(taskId)
+                .orElseThrow(IncorrectTaskUndefinedException::new);
     }
 }

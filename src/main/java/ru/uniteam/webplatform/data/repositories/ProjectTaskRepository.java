@@ -16,6 +16,6 @@ public interface ProjectTaskRepository extends JpaRepository<ProjectTaskEntity, 
     @Query("DELETE FROM ProjectTaskEntity p WHERE p.userEntity = :user AND p.projectEntity = :project")
     void deleteAllTasksByUserAndProject(UserEntity user, ProjectEntity project);
 
-    @Query("SELECT p FROM ProjectTaskEntity WHERE p.userEntity = :user ORDER BY p.deadLine")
+    @Query("SELECT p FROM ProjectTaskEntity p WHERE p.userEntity = :user ORDER BY p.deadLine")
     List<ProjectTaskEntity> getUserTasks(UserEntity user);
 }

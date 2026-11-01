@@ -104,7 +104,7 @@ public class UserService {
         ProjectEntity project = commonHelper.getProject(projectId);
 
         List<UserProjectEntity> usersInThisProject = userProjectRepository
-                .findAllByProjectEntityId(project);
+                .findEmployeesByProjectEntityId(project);
 
 
         Optional<UserProjectEntity> userInThisProject = usersInThisProject.stream()

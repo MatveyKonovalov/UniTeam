@@ -148,8 +148,7 @@ public class UserEntity {
         currentAmountProject--;
     }
 
-    public void leaveTheProject(UserProjectEntity up) {
-        userProjectEntities.remove(up);
+    public void leaveTheProject() {
         currentAmountProject--;
     }
 

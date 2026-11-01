@@ -16,7 +16,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
             "ORDER BY p.stars DESC")
     List<ProjectEntity> findProjectsByUniversityAndMinCourse(University university, int minCourse);
 
-    @Query("SELECT p FROM ProjectEntity ORDER BY p.stars DESC")
+    @Query("SELECT p FROM ProjectEntity p ORDER BY p.stars DESC")
     List<ProjectEntity> findProjectEntitiesByUniversity(University university);
 
     @Query("SELECT p FROM ProjectEntity p " +

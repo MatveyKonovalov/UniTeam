@@ -57,7 +57,14 @@ public class ProjectEntity {
     @Column(name = "min_course")
     private int minCourse;
 
-    @ManyToMany(mappedBy = "projectsStars")
+    @ManyToMany()
+    @JoinTable(
+            name = "students_stars",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_user_project_star",
+                    columnNames = {"student_id", "project_id"})
+    )
     private final Set<UserEntity> usersStars = new HashSet<>();
 
     public int getStars() {
