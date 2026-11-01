@@ -158,7 +158,9 @@ public class ProjectTaskService {
         UserProjectEntity userInProject = userProjectRepository.findUserInProject(task.getUserEntity(), project)
                 .orElseThrow(IncorrectTaskUndefinedException::new);
 
-
+        if (!List.of(TaskStatus.ON_REVIEW, TaskStatus.UNDER_DEVELOPMENT).contains(task.getTaskStatus())) {
+            throw new IllegalArgumentException("Incorrect task status for send to review");
+        }
         if (List.of(ProjectRole.CANDIDATE, ProjectRole.CANCELLED).contains(userInProject.getProjectRole())) {
             throw new PermissionException();
         } else if ((userInProject.getProjectRole() == ProjectRole.SUBCAPTAIN &&
