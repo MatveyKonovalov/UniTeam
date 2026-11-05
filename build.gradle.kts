@@ -2,7 +2,8 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.1.1"
 	id("io.spring.dependency-management") version "1.1.7"
-    kotlin("jvm")
+	kotlin("jvm")
+	id("jacoco")
 }
 
 group = "com.example"
@@ -31,7 +32,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-thymeleaf-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation(kotlin("stdlib-jdk8"))
+	implementation(kotlin("stdlib-jdk8"))
 	implementation(project(":domain"))
 	implementation("io.jsonwebtoken:jjwt-api:${property("jjwtVersion")}")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jjwtVersion")}")
@@ -41,8 +42,25 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok:1.18.48")
 	testCompileOnly("org.projectlombok:lombok:1.18.48")
 	testAnnotationProcessor("org.projectlombok:lombok:1.18.48")
+
+	testImplementation("org.mockito:mockito-core:5.11.0")
+	testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
+	testRuntimeOnly("com.h2database:h2")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+tasks.named<JacocoReport>("jacocoTestReport") {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+		csv.required.set(false)
+	}
 }
