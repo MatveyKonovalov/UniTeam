@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Run tests
+        run: ./gradlew test jacocoTestReport --no-daemon
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/build/test-results/test/
+            **/build/reports/tests/test/
+          retention-days: 14
+
+      - name: Upload Jacoco coverage report
+
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: |
+            build/reports/jacoco/test/html/
+            build/reports/jacoco/test/jacocoTestReport.xml
+          retention-days: 14
+
+      - name: Upload domain test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: domain-test-report
+          path: domain/build/reports/tests/test/
+          retention-days: 14
+          if-no-files-found: ignore
