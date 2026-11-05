@@ -31,19 +31,6 @@
 
 ---
 
-## ⚠️ Статус проекта: альфа-версия
-
-UniTeam находится на стадии **alpha**. Основной функционал (регистрация, профиль, каталог проектов, карточка проекта с управлением командой) уже работает, но проект активно развивается:
-
-- API и структура базы данных могут меняться без обратной совместимости;
-- возможны баги и недоработки, часть функций (дедлайны-уведомления, публичный API) ещё не реализована;
-- не рекомендуется использовать в production и хранить важные данные.
-
-Исходный код: **https://github.com/MatveyKonovalov/UniTeam**
-
-Нашёл ошибку или есть идея? Создай [issue](https://github.com/MatveyKonovalov/UniTeam/issues) в репозитории.
-
----
 
 ## 🚀 О проекте
 
@@ -247,6 +234,69 @@ BACKEND_URL=http://localhost:8081 PORT=3000 npm start
 - **Отправка на ревью** - только из статуса «В работе» или «На доработке»
 - **Ревью** - только для задач в статусе «На ревью»
 
+
+
+
+
+---
+
+## 🏗 Архитектура
+
+Backend разделён на два модуля:
+
+| Модуль | Содержимое |
+|--------|------------|
+| **domain** | Чистая доменная логика (enum'ы, валидация, исключения) без Spring |
+| **webplatform** | Spring Boot: контроллеры → сервисы → репозитории → JPA / PostgreSQL |
+
+Слои (сверху вниз):
+
+1. **Controllers** — `AuthController`, `CommonInfo` (открытые); `ProjectController`, `UserController`, `TaskController` (JWT)
+2. **Services** — `UserService`, `ProjectService`, `ProjectTaskService`, `CommonHelper`, мапперы, справочники
+3. **Repositories** — Spring Data JPA (`UserRepository`, `ProjectRepository`, `UserProjectRepository`, `ProjectTaskRepository`)
+4. **Entities** — `UserEntity`, `ProjectEntity`, `UserProjectEntity`, `ProjectTaskEntity`
+5. **Domain** — `University`, `Skill`, `ProjectRole`, `TaskStatus`, use-case'ы проверки
+
+Безопасность: JWT (access + refresh), BCrypt, RBAC по ролям в проекте и в системе.
+
+Подробные UML-диаграммы (компоненты, классы, сущности, sequence) и описание связей — в **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
+---
+
+## 🧪 Тесты
+
+Автотесты написаны на **JUnit 5** и **Mockito**.
+
+### Что покрыто
+
+**domain (unit):**
+- `CheckEmailUseCase`, `CheckCourse`, `CheckNotNull`, `CheckUniversity`, `CanUserBorrowProject`, `CheckUserSkills`
+- `University`, `Skill`, `UserData`, enum'ы, исключения, `Pair`
+
+**src (unit + Mockito):**
+- **Сервисы:** `UserService`, `ProjectService`, `ProjectTaskService`, `CommonHelper`, `DeleteUserInProject`, справочники
+- **Мапперы:** `UserMapper`, `ProjectMapper`, `ProjectTaskMapper`
+- **Контроллеры:** `ProjectController`, `UserController`, `TaskController`, `CommonInfo`, `UserGetterFromRequest`
+- Репозитории мокаются в service-тестах
+
+### Запуск
+
+```bash
+# все тесты
+./gradlew test
+
+# только domain
+./gradlew :domain:test
+
+# тесты + отчёт покрытия Jacoco
+./gradlew test jacocoTestReport
+```
+
+Отчёт покрытия: `build/reports/jacoco/test/html/index.html`
+
+Для тестов используется **H2** (in-memory), PostgreSQL не требуется. Конфигурация — `src/test/resources/application.properties`.
+
+Структура тестовых классов и UML по архитектуре — в [ARCHITECTURE.md](ARCHITECTURE.md#тесты).
 
 
 ---

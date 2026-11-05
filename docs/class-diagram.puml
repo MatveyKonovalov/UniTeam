@@ -1,0 +1,111 @@
+@startuml UniTeam_Class_Diagram
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+title UniTeam - class relationships
+
+package "controllers.closed" {
+  abstract class UserGetterFromRequest {
+    +getUserFromRequest(): UserEntity
+  }
+  class ProjectController
+  class UserController
+  class TaskController
+}
+
+package "controllers.opened" {
+  class AuthController
+  class CommonInfo
+}
+
+package "services" {
+  class UserService
+  class ProjectService
+  class ProjectTaskService
+  class CommonHelper
+  class DeleteUserInProject
+  class UserMapper
+  class ProjectMapper
+  class ProjectTaskMapper
+  class UniversityService
+  class SkillService
+  class ProjectTypeService
+}
+
+package "repositories" {
+  interface UserRepository
+  interface ProjectRepository
+  interface UserProjectRepository
+  interface ProjectTaskRepository
+}
+
+package "entities" {
+  class UserEntity
+  class ProjectEntity
+  class UserProjectEntity
+  class ProjectTaskEntity
+}
+
+package "domain" #LightYellow {
+  enum University
+  enum Skill
+  enum ProjectRole
+  enum TaskStatus
+  enum TaskType
+  class CheckEmailUseCase
+  class CanUserBorrowProject
+}
+
+ProjectController --|> UserGetterFromRequest
+UserController --|> UserGetterFromRequest
+TaskController --|> UserGetterFromRequest
+
+UserGetterFromRequest --> UserService
+ProjectController --> ProjectService
+UserController --> UserService
+UserController --> ProjectService
+TaskController --> ProjectTaskService
+AuthController --> UserRepository
+AuthController --> UserMapper
+CommonInfo --> UniversityService
+CommonInfo --> SkillService
+CommonInfo --> ProjectTypeService
+
+UserService --> UserRepository
+UserService --> UserMapper
+UserService --> CommonHelper
+UserService --> DeleteUserInProject
+UserService --> ProjectMapper
+ProjectService --> ProjectRepository
+ProjectService --> ProjectMapper
+ProjectService --> CommonHelper
+ProjectService --> DeleteUserInProject
+ProjectTaskService --> ProjectTaskRepository
+ProjectTaskService --> ProjectTaskMapper
+ProjectTaskService --> CommonHelper
+CommonHelper --> UserRepository
+CommonHelper --> ProjectRepository
+CommonHelper --> UserProjectRepository
+DeleteUserInProject --> ProjectTaskRepository
+DeleteUserInProject --> UserProjectRepository
+
+UserRepository ..> UserEntity
+ProjectRepository ..> ProjectEntity
+UserProjectRepository ..> UserProjectEntity
+ProjectTaskRepository ..> ProjectTaskEntity
+
+UserEntity "1" o-- "*" UserProjectEntity
+ProjectEntity "1" o-- "*" UserProjectEntity
+UserEntity "1" o-- "*" ProjectTaskEntity
+ProjectEntity "1" o-- "*" ProjectTaskEntity
+UserEntity "*" -- "*" ProjectEntity : stars
+
+UniversityService ..> University
+SkillService ..> Skill
+UserEntity ..> University
+UserEntity ..> Skill
+ProjectEntity ..> University
+UserProjectEntity ..> ProjectRole
+ProjectTaskEntity ..> TaskStatus
+ProjectTaskEntity ..> TaskType
+
+@enduml
